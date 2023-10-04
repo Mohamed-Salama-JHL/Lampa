@@ -1,0 +1,12 @@
+fastapi==0.100.0
+bokeh==3.2.0
+panel==1.2.0
+numpy==1.23.5
+pandas==2.0.3
+hvplot==0.8.4
+folium==0.14.0
+plotly==5.15.0
+holoviews==1.16.2
+jinja2==3.0.0
+markupsafe==2.0.0rc2
+dask==2023.7.0

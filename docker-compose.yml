@@ -1,0 +1,17 @@
+version: "3.7"
+services:
+  apis:
+    build:
+      context: The_endpoints
+      dockerfile: Dockerfile
+    ports:
+      - "7000:7000"
+    depends_on:
+      - dashboard
+
+  dashboard:
+    build:
+      context: The_dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
