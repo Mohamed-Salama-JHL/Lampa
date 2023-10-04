@@ -762,11 +762,11 @@ class map_dashboard:
     def create_template(self):
         self.bend_components_actions()
 
-        title = pn.pane.Markdown("# Map Dashboard", styles={"font-size": "18px", "font-weight": "bold", "color":"White"}, sizing_mode="stretch_width")
-        #jhi_logo = pn.pane.PNG("C:/Users/MS44253/Desktop/logo_white.png",align=('center', 'center'), sizing_mode="stretch_width")
+        title = pn.pane.Markdown("# Lampa", styles={"font-size": "18px", "font-weight": "bold", "color":"White"}, sizing_mode="stretch_width")
+        logo = pn.pane.SVG("The_dashboard\map_app\GUI\Static_data\lampa4.svg",align=('center', 'center'), sizing_mode="stretch_width")
         title_bar = pn.Row(self.menu_button,
                         title, 
-                        #jhi_logo,
+                        logo,
                         self.home_button,
                         self.about_button,
                         styles={"align":"center", "background":"#0172B6",  "width_policy":"max",   "sizing_mode":"stretch_width"}
