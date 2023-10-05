@@ -127,8 +127,8 @@ class map_dashboard:
             sizing_mode='stretch_width', visible = False
         )
     def create_home_page(self):
-        title = "<h1 style='text-align: center;'>The App</h1>"
-        info_text = "<p>Welcome to the App! This app allows you to vizualize and manage datasets.</p>"
+        title = "<h3 style='text-align: center;'>Lampa</h3>"
+        info_text = "<p>Welcome to Lampa! This app allows you to vizualize and manage datasets.</p>"
         self.create_experiment_button = pn.widgets.Button(name='Create Experiment', button_type='primary', design=self.design, align='center')
         self.create_example_button = pn.widgets.Button(name='Watch Demo', button_type='primary', design=self.design, align='center')
         self.home_page_buttons_bar = pn.Row(self.create_experiment_button,self.create_example_button,align='center')
@@ -214,10 +214,10 @@ class map_dashboard:
         self.column_controls_compoent = pn.Column(self.final_sentence,self.regular_controls, visible=False)
         
     def creating_titlebar_buttons(self):
-        self.about_button = pn.widgets.Button(name="About", button_type="primary", icon ='alert-circle',align='center')
-        self.home_button = pn.widgets.Button(name="Home", button_type="primary", icon ='home-2',align='center')
+        self.about_button = pn.widgets.Button(name="About", button_type="primary", icon ='alert-circle',align=('end','center'))
+        self.home_button = pn.widgets.Button(name="Home", button_type="primary", icon ='home-2',align=('end','center'))
         self.menu_button = pn.widgets.Button(name="", button_type="primary", icon ='menu-2',align='center', icon_size= '24px',visible = False)
-        self.titlebar_buttons = pn.Row(self.home_button,self.about_button)
+        self.titlebar_buttons = pn.Row(self.home_button,self.about_button,align=('end','center'))
     
     '''
     def creating_dashboard_gridstack(self):
@@ -762,11 +762,11 @@ class map_dashboard:
     def create_template(self):
         self.bend_components_actions()
 
-        title = pn.pane.Markdown("# Lampa", styles={"font-size": "18px", "font-weight": "bold", "color":"White"}, sizing_mode="stretch_width")
-        logo = pn.pane.SVG("The_dashboard\map_app\GUI\Static_data\lampa4.svg",align=('center', 'center'), sizing_mode="stretch_width")
+        title = pn.pane.Markdown("", styles={"font-size": "18px", "font-weight": "bold", "color":"White"}, sizing_mode="stretch_width") 
+        logo = pn.pane.SVG("/code/map_app/GUI/test7.svg",align=('end', 'end'), height=60) 
         title_bar = pn.Row(self.menu_button,
-                        title, 
                         logo,
+                        title, 
                         self.home_button,
                         self.about_button,
                         styles={"align":"center", "background":"#0172B6",  "width_policy":"max",   "sizing_mode":"stretch_width"}
