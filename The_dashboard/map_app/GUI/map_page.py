@@ -445,8 +445,11 @@ class map_dashboard:
         #return fig_bar,fig_pie
     
     
-    def add_columns_tooltip(self,final_data):
-        temp_geo_data =  copy.deepcopy(self.geo_data)
+    def add_columns_tooltip(self,final_data,cur_geo_data=None):
+        geo_data = self.geo_data
+        if cur_geo_data != None:
+            geo_data = cur_geo_data
+        temp_geo_data =  copy.deepcopy(geo_data)
         id_mapping = dict(zip(final_data[self.location_column], final_data[self.value_column]))
         values_dict = {}
         columns_list = [self.value_column]
@@ -491,11 +494,12 @@ class map_dashboard:
         if isinstance(self.dataset,pd.DataFrame) and features:
             final_data = self.create_filtered_data_map(features,agg,year_range)
             #new_layer = folium.FeatureGroup(name='Layer '+str(len(self.map_layers)), overlay=False)
-            
-            temp_geo_data,tooltip_list = self.add_columns_tooltip(final_data)
+            cur_geo_data,cur_zoom,cur_center_point = self.geo_handler.get_cur_map_specs(set(final_data[self.location_column]))
+            m = folium.Map(location=cur_center_point, zoom_start=cur_zoom,width='100%', height='100%',tiles=base_map)
+            temp_geo_data,tooltip_list = self.add_columns_tooltip(final_data,cur_geo_data)
             
             choropleth = folium.Choropleth(
-                geo_data=self.geo_data,
+                geo_data=cur_geo_data,
                 name="choropleth"+str(len(self.map_layers)),
                 data=final_data,
                 columns=[self.location_column, self.value_column],
@@ -530,7 +534,7 @@ class map_dashboard:
             )
             m.add_child(map_info)
             m.keep_in_front(map_info)
-            m
+            #m
             '''
             self.map_layers.append(choropleth)
             for layer in self.map_layers:
@@ -763,7 +767,7 @@ class map_dashboard:
         self.bend_components_actions()
 
         title = pn.pane.Markdown("", styles={"font-size": "18px", "font-weight": "bold", "color":"White"}, sizing_mode="stretch_width") 
-        logo = pn.pane.SVG("/code/map_app/GUI/test7.svg",align=('end', 'end'), height=60) 
+        logo = pn.pane.SVG("/code/map_app/GUI/Static_data/test7.svg",align=('end', 'end'), height=60) 
         title_bar = pn.Row(self.menu_button,
                         logo,
                         title, 
