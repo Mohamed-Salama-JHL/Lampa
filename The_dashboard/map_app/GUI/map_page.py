@@ -127,12 +127,14 @@ class map_dashboard:
             sizing_mode='stretch_width', visible = False
         )
     def create_home_page(self):
-        title = "<h3 style='text-align: center;'>Lampa</h3>"
-        info_text = "<p>Welcome to Lampa! This app allows you to vizualize and manage datasets.</p>"
+        logo_home = pn.pane.SVG("/code/map_app/GUI/Static_data/test9.svg",align=('start', 'center'), height=200,margin=20) 
+
+        #title = "<h3 style='text-align: center;'>Lampa</h3>"
+        info_text = "<h1>Enlighten Your datasets with visualizations</h1>"
         self.create_experiment_button = pn.widgets.Button(name='Create Experiment', button_type='primary', design=self.design, align='center')
         self.create_example_button = pn.widgets.Button(name='Watch Demo', button_type='primary', design=self.design, align='center')
         self.home_page_buttons_bar = pn.Row(self.create_experiment_button,self.create_example_button,align='center')
-        self.home_page_component =  pn.Column(title, info_text, self.home_page_buttons_bar
+        self.home_page_component =  pn.Column(logo_home, info_text, self.home_page_buttons_bar
                                               
             ,sizing_mode='stretch_width', visible = True)
     def uploading_dataset_components(self):
@@ -216,7 +218,7 @@ class map_dashboard:
     def creating_titlebar_buttons(self):
         self.about_button = pn.widgets.Button(name="About", button_type="primary", icon ='alert-circle',align=('end','center'))
         self.home_button = pn.widgets.Button(name="Home", button_type="primary", icon ='home-2',align=('end','center'))
-        self.menu_button = pn.widgets.Button(name="", button_type="primary", icon ='menu-2',align='center', icon_size= '24px',visible = False)
+        self.menu_button = pn.widgets.Button(name="", button_type="primary", icon ='menu-2',align='center', icon_size= '24px',visible = False, margin = 3)
         self.titlebar_buttons = pn.Row(self.home_button,self.about_button,align=('end','center'))
     
     '''
@@ -383,18 +385,19 @@ class map_dashboard:
         else:
             self.home_page_component.visible = True
         self.about_page_component.visible = False
+        self.menu_button.disabled = False
     def show_about_page(self):
         self.map_area.visible = False
         self.controls.visible = False
         self.home_page_component.visible = False
         self.about_page_component.visible = True
-
+        self.menu_button.disabled = True
     def show_home_page(self):
         self.map_area.visible = False
         self.controls.visible = False 
         self.about_page_component.visible = False
         self.home_page_component.visible = True
-
+        self.menu_button.disabled = False
     def create_filtered_data_chart(self,features=None,agg=None,year_range=(1997, 2017)):
         if isinstance(self.dataset,pd.DataFrame):
             data_feature_filter = self.dataset.copy()
@@ -681,6 +684,8 @@ class map_dashboard:
         print('test', self.bar_chart.visible)
         self.update_widgets_map_create()
         print('test', self.bar_chart.visible)
+
+
     def map_update(self,event):
         #Change both
         new_features = self.get_filters_values()
@@ -767,7 +772,7 @@ class map_dashboard:
         self.bend_components_actions()
 
         title = pn.pane.Markdown("", styles={"font-size": "18px", "font-weight": "bold", "color":"White"}, sizing_mode="stretch_width") 
-        logo = pn.pane.SVG("/code/map_app/GUI/Static_data/test7.svg",align=('end', 'end'), height=60) 
+        logo = pn.pane.SVG("/code/map_app/GUI/Static_data/test8.svg",align=('end', 'end'), height=60,margin=1) 
         title_bar = pn.Row(self.menu_button,
                         logo,
                         title, 
