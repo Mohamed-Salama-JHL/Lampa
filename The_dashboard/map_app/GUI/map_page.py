@@ -64,6 +64,7 @@ class map_dashboard:
         self.map_base_option = ['OpenStreetMap', 'Stamen Toner', 'CartoDB positron', 'Cartodb dark_matter', 'Stamen Watercolor' , 'Stamen Terrain']
         self.map_color_option = color_brewer_palettes
         self.home_page_active = False #False means no expermint yet
+        self.controls_latest_values={}
         self.create_widgets()
 
     def create_filters_columns(self,filters_features,add_controls=True):
@@ -104,7 +105,7 @@ class map_dashboard:
     def about_page_values(self):
         #pn.state.template.logo = "C:/Users/MS44253/Desktop/logo.png"
 
-        welcome = "## Welcome to the dashboard app"
+        welcome = "## Welcome to Lampa"
 
         penguins_art = "### Created at James Hutton"#pn.pane.PNG("C:/Users/MS44253/Desktop/logo.png", height=100)
 
@@ -127,14 +128,17 @@ class map_dashboard:
             sizing_mode='stretch_width', visible = False
         )
     def create_home_page(self):
-        logo_home = pn.pane.SVG("/code/map_app/GUI/Static_data/test9.svg",align=('start', 'center'), height=200,margin=20) 
+        
+        logo_home = pn.pane.SVG("/code/map_app/GUI/Static_data/Lampa_logo_only.svg",align=('end', 'center'), height=200,margin=(10, 150)) 
+        
+        title = pn.pane.Markdown('LAMPA!',styles={'font-size': '25pt','font-family': 'Comic Sans MS'})
+        info_text =pn.pane.Markdown('Enlighten Your datasets with visualizations.',styles={'font-size': '20pt','font-family': 'Comic Sans MS'}) 
 
-        #title = "<h3 style='text-align: center;'>Lampa</h3>"
-        info_text = "<h1>Enlighten Your datasets with visualizations</h1>"
-        self.create_experiment_button = pn.widgets.Button(name='Create Experiment', button_type='primary', design=self.design, align='center')
-        self.create_example_button = pn.widgets.Button(name='Watch Demo', button_type='primary', design=self.design, align='center')
+        intro_widged = pn.Row(pn.Column(title,info_text,margin=(50, 150)),logo_home, align='center')
+        self.create_experiment_button = pn.widgets.Button(name='Create Experiment', button_type='primary', design=self.design, align='center',margin=(50, 20))
+        self.create_example_button = pn.widgets.Button(name='Watch Demo', button_type='primary', design=self.design, align='center',margin=(50, 20))
         self.home_page_buttons_bar = pn.Row(self.create_experiment_button,self.create_example_button,align='center')
-        self.home_page_component =  pn.Column(logo_home, info_text, self.home_page_buttons_bar
+        self.home_page_component =  pn.Column(intro_widged, self.home_page_buttons_bar
                                               
             ,sizing_mode='stretch_width', visible = True)
     def uploading_dataset_components(self):
@@ -686,7 +690,29 @@ class map_dashboard:
         print('test', self.bar_chart.visible)
 
 
+    def check_what_change(self):
+        #all 0 , map only 1 , charts only 2
+        change_map = False
+        change_charts = False
+        temp_controls_latest_values = {}
+        map_values = ['transparency_map_range','select_color_map','select_base_map','select_tooltip']
+        chart_values = ['select_legend_update' , 'select_chart_x_update' ]
+        all_values = ['agg_buttons' , 'year_range', 'select_value_column_update']
+        temp_controls_latest_values['agg_buttons'] = self.agg_buttons.value
+        temp_controls_latest_values['year_range'] = self.year_range.value
+        temp_controls_latest_values['select_value_column_update'] = self.select_value_column_update.value
+        temp_controls_latest_values['transparency_map_range'] = self.transparency_map_range.value
+        temp_controls_latest_values['select_color_map'] = self.select_color_map.value
+        temp_controls_latest_values['select_base_map'] = self.select_base_map.value
+        temp_controls_latest_values['select_tooltip'] = self.select_tooltip.value
+        temp_controls_latest_values['select_chart_x_update'] = self.select_chart_x_update.value
+        temp_controls_latest_values['select_legend_update'] = self.select_legend_update.value
+        new_features = self.get_filters_values()
+
+
+        return 0
     def map_update(self,event):
+        change_type = self.check_what_change()
         #Change both
         new_features = self.get_filters_values()
         agg = self.agg_buttons.value
@@ -699,17 +725,23 @@ class map_dashboard:
         #Change charts only
         self.chart_column = self.select_chart_x_update.value
         self.legend_column = self.select_legend_update.value
+        if change_type == 0:
+            thread1 = threading.Thread(target=self.create_map, args=(new_features,agg,year_range_value,transparency_level,base_map,map_coloring,))
+            thread2 = threading.Thread(target=self.create_charts, args=(new_features,agg,year_range_value,))
 
-        thread1 = threading.Thread(target=self.create_map, args=(new_features,agg,year_range_value,transparency_level,base_map,map_coloring,))
-        thread2 = threading.Thread(target=self.create_charts, args=(new_features,agg,year_range_value,))
+            # Start both threads
+            thread1.start()
+            thread2.start()
 
-        # Start both threads
-        thread1.start()
-        thread2.start()
+            # Wait for both threads to finish
+            thread1.join()
+            thread2.join()
 
-        # Wait for both threads to finish
-        thread1.join()
-        thread2.join()
+        elif change_type == 1:
+            self.create_map(new_features,agg,year_range_value,transparency_level,base_map,map_coloring)
+        
+        else:
+            self.create_charts(new_features,agg,year_range_value)
         '''
         self.responsive_map.object= thread1.result
         if self.main_tabs.active != 2:
