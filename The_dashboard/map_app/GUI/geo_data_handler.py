@@ -68,6 +68,14 @@ class geojson_handler:
 
         return [center_lat, center_lon]
     
+    def check_overlap(self,locations,geo_field='GEOID'):
+        count = 0
+        
+        for location in self.return_geojson['features']:
+            if location['properties'][geo_field] in locations:
+                count+=1
+
+        return int((count/len(locations))*100)
     # after choosing mapping
     def prepare_geometry_data(self,locations,geo_field='GEOID'):
         new_geo_list=[]

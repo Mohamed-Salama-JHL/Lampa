@@ -129,18 +129,33 @@ class map_dashboard:
         )
     def create_home_page(self):
         
-        logo_home = pn.pane.SVG("/code/map_app/GUI/Static_data/Lampa_logo_only.svg",align=('end', 'center'), height=200,margin=(10, 150)) 
+        logo_home = pn.pane.SVG("/code/map_app/GUI/Static_data/Lampa_logo_only.svg",align=('end', 'center'), height=200,margin=(10, 50)) 
         
-        title = pn.pane.Markdown('LAMPA!',styles={'font-size': '25pt','font-family': 'Comic Sans MS'})
-        info_text =pn.pane.Markdown('Enlighten Your datasets with visualizations.',styles={'font-size': '20pt','font-family': 'Comic Sans MS'}) 
+        #title = pn.pane.Markdown('LAMPA!',styles={'font-size': '25pt','font-family': 'Comic Sans MS'})
+        info_text =pn.pane.Markdown('Enlighten Your Data with **LAMPA.**',styles={'font-size': '23pt','font-family': 'Comic Sans MS'}) 
+        info_text2 =pn.pane.Markdown('Transform your raw datasets into vibrant visual narratives with Lampa!<br /> Experience the power of data storytelling through dynamic visualizations,<br /> including Choropleth Maps, Bar Charts, Line Charts, Box Plots, and more.'
+                                     ,styles={'font-size': '18pt','color':'#676767'}) 
+        
+        self.create_experiment_button_page = pn.widgets.Button(name='Get Started', button_type='primary', design=self.design)
+        self.create_example_button_page = pn.widgets.Button(name='Watch Demo', button_type='primary', design=self.design,button_style='outline')
+        self.home_page_buttons_bar = pn.Row(self.create_experiment_button_page,self.create_example_button_page,align='start')
+        intro_widged = pn.Row(pn.Column(info_text,info_text2,self.home_page_buttons_bar,margin=(20, 50)),logo_home, align='center',margin=(30, 10))
+        
+        #flow__text = pn.pane.Markdown('Create Your Dashboard In 4 Easy Steps.',styles={'font-size': '23pt','font-family': 'Comic Sans MS'}) 
+        flow_diagram = pn.pane.SVG("/code/map_app/GUI/Static_data/flow_diagram_6.svg",align= 'center', height=360 ,margin=(0, 50)) 
 
-        intro_widged = pn.Row(pn.Column(title,info_text,margin=(50, 150)),logo_home, align='center')
-        self.create_experiment_button = pn.widgets.Button(name='Create Experiment', button_type='primary', design=self.design, align='center',margin=(50, 20))
-        self.create_example_button = pn.widgets.Button(name='Watch Demo', button_type='primary', design=self.design, align='center',margin=(50, 20))
-        self.home_page_buttons_bar = pn.Row(self.create_experiment_button,self.create_example_button,align='center')
-        self.home_page_component =  pn.Column(intro_widged, self.home_page_buttons_bar
-                                              
+        
+        #funders row
+        syngenta_logo = pn.pane.SVG("/code/map_app/GUI/Static_data/Syngenta_Logo.svg",align=('end', 'center'), height=100,margin=(10, 50)) 
+        jhi_logo = pn.pane.SVG("/code/map_app/GUI/Static_data/jhi_logo.svg",align=('end', 'center'), height=100,margin=(10, 50)) 
+        jhl_logo = pn.pane.SVG("/code/map_app/GUI/Static_data/jhl_logo.svg",align=('end', 'center'), height=130,margin=(10, 50)) 
+        logos_row = pn.Row(jhl_logo,syngenta_logo,jhi_logo,align =('center','end'),margin=(30, 10))
+        logo_text =pn.pane.Markdown('**Meet our funders....**',align = 'center',styles={'font-size': '22pt'}) 
+        logos_column = pn.Column(logo_text,pn.layout.Divider(),logos_row,align =('center','end'),margin=(180, 10))
+        
+        self.home_page_component =  pn.Column(intro_widged,flow_diagram,logos_column                           
             ,sizing_mode='stretch_width', visible = True)
+        
     def uploading_dataset_components(self):
         self.first_sentence = pn.pane.Markdown('##### **Step 1:** Upload a dataset.<br />', styles={"font-size": "10px"})
         self.file_input = pn.widgets.FileInput(name= 'Upload dataset', accept='.csv,.xlsx', design=self.design)
@@ -220,21 +235,14 @@ class map_dashboard:
         self.column_controls_compoent = pn.Column(self.final_sentence,self.regular_controls, visible=False)
         
     def creating_titlebar_buttons(self):
-        self.about_button = pn.widgets.Button(name="About", button_type="primary", icon ='alert-circle',align=('end','center'))
-        self.home_button = pn.widgets.Button(name="Home", button_type="primary", icon ='home-2',align=('end','center'))
+        self.about_button = pn.widgets.Button(name="About", button_type="primary", icon ='alert-circle',align=('end','center'),margin = 0)
+        self.home_button = pn.widgets.Button(name="Home", button_type="primary", icon ='home-2',align=('end','center'),margin = 0)
         self.menu_button = pn.widgets.Button(name="", button_type="primary", icon ='menu-2',align='center', icon_size= '24px',visible = False, margin = 3)
-        self.titlebar_buttons = pn.Row(self.home_button,self.about_button,align=('end','center'))
+        self.create_experiment_button = pn.widgets.Button(name='Create Experiment', button_type='primary',  align=('end','center'),icon ='lamp')
+        self.create_example_button = pn.widgets.Button(name='Watch Demo', button_type='primary',  align=('end','center'),icon ='device-tv',margin = 0)
+        self.titlebar_buttons = pn.Row(self.create_experiment_button,self.create_example_button,self.home_button,self.about_button,align=('end','center'),margin = 0)
     
-    '''
-    def creating_dashboard_gridstack(self):
-        gstack = GridStack( min_height=1500,min_width=1400,allow_resize=True,allow_drag=True,ncols=12,nrows=9)
-        gstack[ 0: 3 , 0: 6] = self.responsive_map
-        gstack[3:6, 0: 3] = self.bar_chart
-        gstack[3:6, 3:6] = self.scatter_chart
-        gstack[6:9, 0: 3] = self.pie_chart
-        gstack[6:9, 3:6] = self.box_chart
-        return gstack
-    '''
+
     def create_main_area_widgets(self):
         empty_map = folium.Map(location=(41,-99), zoom_start=0,width='100%', height='100%')
         self.responsive_map = pn.pane.plot.Folium(empty_map, height=500, width=800, visible=False, name='Map', design=self.design)
@@ -808,8 +816,7 @@ class map_dashboard:
         title_bar = pn.Row(self.menu_button,
                         logo,
                         title, 
-                        self.home_button,
-                        self.about_button,
+                        self.titlebar_buttons,
                         styles={"align":"center", "background":"#0172B6",  "width_policy":"max",   "sizing_mode":"stretch_width"}
                         , design=self.design, sizing_mode="stretch_width")
         
