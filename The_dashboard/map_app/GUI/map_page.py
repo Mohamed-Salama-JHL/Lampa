@@ -129,20 +129,20 @@ class map_dashboard:
         )
     def create_home_page(self):
         
-        logo_home = pn.pane.SVG("/code/map_app/GUI/Static_data/Lampa_logo_only.svg",align=('end', 'center'), height=200,margin=(10, 50)) 
+        logo_home = pn.pane.SVG("/code/map_app/GUI/Static_data/Lampa_logo_only.svg",align=('end', 'center'), height=220,margin=(10, 50)) 
         
         #title = pn.pane.Markdown('LAMPA!',styles={'font-size': '25pt','font-family': 'Comic Sans MS'})
-        info_text =pn.pane.Markdown('Enlighten Your Data with **LAMPA.**',styles={'font-size': '23pt','font-family': 'Comic Sans MS'}) 
+        info_text =pn.pane.Markdown('Enlighten Your Data with **LAMPA.**',styles={'font-size': '24pt','font-family': 'Comic Sans MS'}) 
         info_text2 =pn.pane.Markdown('Transform your raw datasets into vibrant visual narratives with Lampa!<br /> Experience the power of data storytelling through dynamic visualizations,<br /> including Choropleth Maps, Bar Charts, Line Charts, Box Plots, and more.'
-                                     ,styles={'font-size': '18pt','color':'#676767'}) 
+                                     ,styles={'font-size': '19pt','color':'#676767'}) 
         
         self.create_experiment_button_page = pn.widgets.Button(name='Get Started', button_type='primary', design=self.design)
         self.create_example_button_page = pn.widgets.Button(name='Watch Demo', button_type='primary', design=self.design,button_style='outline')
         self.home_page_buttons_bar = pn.Row(self.create_experiment_button_page,self.create_example_button_page,align='start')
-        intro_widged = pn.Row(pn.Column(info_text,info_text2,self.home_page_buttons_bar,margin=(20, 50)),logo_home, align='center',margin=(30, 10))
+        intro_widged = pn.Row(pn.Column(info_text,info_text2,self.home_page_buttons_bar,margin=(20, 50)),logo_home, align='center',margin=(170, 10))
         
         #flow__text = pn.pane.Markdown('Create Your Dashboard In 4 Easy Steps.',styles={'font-size': '23pt','font-family': 'Comic Sans MS'}) 
-        flow_diagram = pn.pane.SVG("/code/map_app/GUI/Static_data/flow_diagram_6.svg",align= 'center', height=360 ,margin=(0, 50)) 
+        flow_diagram = pn.pane.SVG("/code/map_app/GUI/Static_data/flow_diagram_8.svg",align= 'center', height=360 ,margin=(10, 50)) 
 
         
         #funders row
