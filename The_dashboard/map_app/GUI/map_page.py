@@ -65,6 +65,8 @@ class map_dashboard:
         self.map_color_option = color_brewer_palettes
         self.home_page_active = False #False means no expermint yet
         self.controls_latest_values={}
+        self.mapping_failure_count = 0
+        self.latest_overlap_mapping = 100
         self.create_widgets()
 
     def create_filters_columns(self,filters_features,add_controls=True):
@@ -131,18 +133,16 @@ class map_dashboard:
         
         logo_home = pn.pane.SVG("/code/map_app/GUI/Static_data/Lampa_logo_only.svg",align=('end', 'center'), height=220,margin=(10, 50)) 
         
-        #title = pn.pane.Markdown('LAMPA!',styles={'font-size': '25pt','font-family': 'Comic Sans MS'})
-        info_text =pn.pane.Markdown('Enlighten Your Data with **LAMPA.**',styles={'font-size': '24pt','font-family': 'Comic Sans MS'}) 
+        info_text =pn.pane.Markdown('Enlighten Your Data with **LAMPA.**',styles={'font-size': '24pt','font-family': 'Microsoft Sans Serif'}) 
         info_text2 =pn.pane.Markdown('Transform your raw datasets into vibrant visual narratives with Lampa!<br /> Experience the power of data storytelling through dynamic visualizations,<br /> including Choropleth Maps, Bar Charts, Line Charts, Box Plots, and more.'
                                      ,styles={'font-size': '19pt','color':'#676767'}) 
         
         self.create_experiment_button_page = pn.widgets.Button(name='Get Started', button_type='primary', design=self.design)
         self.create_example_button_page = pn.widgets.Button(name='Watch Demo', button_type='primary', design=self.design,button_style='outline')
         self.home_page_buttons_bar = pn.Row(self.create_experiment_button_page,self.create_example_button_page,align='start')
-        intro_widged = pn.Row(pn.Column(info_text,info_text2,self.home_page_buttons_bar,margin=(20, 50)),logo_home, align='center',margin=(170, 10))
+        intro_widged = pn.Row(pn.Column(info_text,info_text2,self.home_page_buttons_bar,margin=(20, 50)),logo_home, align='center',margin=(250, 10))
         
-        #flow__text = pn.pane.Markdown('Create Your Dashboard In 4 Easy Steps.',styles={'font-size': '23pt','font-family': 'Comic Sans MS'}) 
-        flow_diagram = pn.pane.SVG("/code/map_app/GUI/Static_data/flow_diagram_8.svg",align= 'center', height=360 ,margin=(10, 50)) 
+        flow_diagram = pn.pane.SVG("/code/map_app/GUI/Static_data/flow_diagram_8.svg",align= 'center', height=360 ,margin=(100, 50)) 
 
         
         #funders row
@@ -150,7 +150,7 @@ class map_dashboard:
         jhi_logo = pn.pane.SVG("/code/map_app/GUI/Static_data/jhi_logo.svg",align=('end', 'center'), height=100,margin=(10, 50)) 
         jhl_logo = pn.pane.SVG("/code/map_app/GUI/Static_data/jhl_logo.svg",align=('end', 'center'), height=130,margin=(10, 50)) 
         logos_row = pn.Row(jhl_logo,syngenta_logo,jhi_logo,align =('center','end'),margin=(30, 10))
-        logo_text =pn.pane.Markdown('**Meet our funders....**',align = 'center',styles={'font-size': '22pt'}) 
+        logo_text =pn.pane.Markdown('**Meet our supporters....**',align = 'center',styles={'font-size': '22pt'}) 
         logos_column = pn.Column(logo_text,pn.layout.Divider(),logos_row,align =('center','end'),margin=(180, 10))
         
         self.home_page_component =  pn.Column(intro_widged,flow_diagram,logos_column                           
@@ -610,7 +610,7 @@ class map_dashboard:
     def show_control_side_bar(self,event):
         self.controls.visible = not self.controls.visible
     def geo_data_collecting(self,event):
-        pn.state.notifications.info('this is a notification',duration=0)
+        #pn.state.notifications.info('this is a notification',duration=0)
         self.show_geo_data_collection()
 
     def about_page_handler(self,event):
@@ -689,6 +689,13 @@ class map_dashboard:
         self.geo_feild_value = 'feature.properties.'+self.select_geo_field.value
         print(self.geo_feild_value)
 
+        maping_overlap = self.geo_handler.check_overlap_locations(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
+        if (maping_overlap<=99 and self.mapping_failure_count==0) or (maping_overlap<=99 and maping_overlap!=self.latest_overlap_mapping):
+            self.loading.visible = False
+            pn.state.notifications.info(f'Location mapping overlap is {maping_overlap}',duration=0)
+            self.mapping_failure_count+=1
+            self.latest_overlap_mapping = maping_overlap
+            return None
         self.geo_data = self.geo_handler.get_single_geojson(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
         
         self.create_map()
@@ -698,14 +705,16 @@ class map_dashboard:
         print('test', self.bar_chart.visible)
 
 
-    def check_what_change(self):
+    def check_what_changed(self,filters_values):
         #all 0 , map only 1 , charts only 2
         change_map = False
         change_charts = False
+        final_change = 0
         temp_controls_latest_values = {}
         map_values = ['transparency_map_range','select_color_map','select_base_map','select_tooltip']
         chart_values = ['select_legend_update' , 'select_chart_x_update' ]
         all_values = ['agg_buttons' , 'year_range', 'select_value_column_update']
+        
         temp_controls_latest_values['agg_buttons'] = self.agg_buttons.value
         temp_controls_latest_values['year_range'] = self.year_range.value
         temp_controls_latest_values['select_value_column_update'] = self.select_value_column_update.value
@@ -715,14 +724,32 @@ class map_dashboard:
         temp_controls_latest_values['select_tooltip'] = self.select_tooltip.value
         temp_controls_latest_values['select_chart_x_update'] = self.select_chart_x_update.value
         temp_controls_latest_values['select_legend_update'] = self.select_legend_update.value
-        new_features = self.get_filters_values()
-
-
-        return 0
+        temp_controls_latest_values['filters_values'] = filters_values
+        
+        if len(self.controls_latest_values) >0:
+            
+            for value in temp_controls_latest_values:
+                if self.controls_latest_values[value]!=temp_controls_latest_values[value]:
+                    if value in map_values:
+                        change_map = True
+                    elif value in chart_values:
+                        change_charts= True
+                    else:
+                        change_map = True
+                        change_charts= True
+            
+            if change_map and not change_charts:
+                final_change =  1
+            elif not change_map and change_charts:
+                final_change =  2
+        self.controls_latest_values = temp_controls_latest_values
+        #print('final_change' , final_change)
+        return final_change
+    
     def map_update(self,event):
-        change_type = self.check_what_change()
-        #Change both
         new_features = self.get_filters_values()
+        change_type = self.check_what_changed(new_features)
+        #Change both
         agg = self.agg_buttons.value
         year_range_value=self.year_range.value
         self.value_column = self.select_value_column_update.value
@@ -800,6 +827,7 @@ class map_dashboard:
         self.next_choose_geo.param.watch(self.geo_data_collecting,'value')
         self.menu_button.param.watch(self.show_control_side_bar,'value')
         self.create_experiment_button.param.watch(self.show_experiment_page,'value')
+        self.create_experiment_button_page.param.watch(self.show_experiment_page,'value')
         self.map_show.param.watch(self.show_map_chart,'value') 
         #self.radar_show.param.watch(self.show_control_side_bar,'value') 
         self.line_show.param.watch(self.show_line_chart,'value') 
@@ -812,7 +840,7 @@ class map_dashboard:
         self.bend_components_actions()
 
         title = pn.pane.Markdown("", styles={"font-size": "18px", "font-weight": "bold", "color":"White"}, sizing_mode="stretch_width") 
-        logo = pn.pane.SVG("/code/map_app/GUI/Static_data/test8.svg",align=('end', 'end'), height=60,margin=1) 
+        logo = pn.pane.SVG("/code/map_app/GUI/Static_data/test9.svg",align=('end', 'end'), height=60,margin=1) 
         title_bar = pn.Row(self.menu_button,
                         logo,
                         title, 

@@ -25,10 +25,10 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="px"
      inkscape:zoom="0.77441738"
-     inkscape:cx="513.2891"
+     inkscape:cx="514.58039"
      inkscape:cy="235.01539"
-     inkscape:window-width="1280"
-     inkscape:window-height="650"
+     inkscape:window-width="1920"
+     inkscape:window-height="1010"
      inkscape:window-x="-6"
      inkscape:window-y="-6"
      inkscape:window-maximized="1"
@@ -474,13 +474,13 @@
     <text
        xml:space="preserve"
        id="text1"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:216px;line-height:0;font-family:'Urdu Typesetting';-inkscape-font-specification:'Urdu Typesetting';text-align:center;white-space:pre;shape-inside:url(#rect2);display:inline;mix-blend-mode:screen;fill:#383838;fill-opacity:1;stroke:#ffffff;stroke-width:2.14429;stroke-dasharray:none;stroke-opacity:1"
-       transform="matrix(1.0925109,0,0,1.1842115,18.59741,277.30647)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:216px;line-height:0;font-family:'Microsoft Sans Serif';-inkscape-font-specification:'Microsoft Sans Serif';text-align:center;white-space:pre;shape-inside:url(#rect2);display:inline;mix-blend-mode:screen;fill:#383838;fill-opacity:1;stroke:#ffffff;stroke-width:2.14429;stroke-dasharray:none;stroke-opacity:1"
+       transform="matrix(1.0925109,0,0,1.1842115,3.10189,268.26742)"
        inkscape:label="text1"><tspan
-         x="449.49707"
-         y="106.56051"
-         id="tspan3"><tspan
-           style="font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS'"
+         x="452.39746"
+         y="113.44772"
+         id="tspan2"><tspan
+           style="fill:#ffffff"
            id="tspan1">LAMPA</tspan></tspan></text>
   </g>
 </svg>
