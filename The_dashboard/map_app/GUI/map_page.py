@@ -140,7 +140,7 @@ class map_dashboard:
         self.create_experiment_button_page = pn.widgets.Button(name='Get Started', button_type='primary', design=self.design)
         self.create_example_button_page = pn.widgets.Button(name='Watch Demo', button_type='primary', design=self.design,button_style='outline')
         self.home_page_buttons_bar = pn.Row(self.create_experiment_button_page,self.create_example_button_page,align='start')
-        intro_widged = pn.Row(pn.Column(info_text,info_text2,self.home_page_buttons_bar,margin=(20, 50)),logo_home, align='center',margin=(250, 10))
+        intro_widged = pn.Row(pn.Column(info_text,info_text2,self.home_page_buttons_bar,margin=(20, 50)),logo_home, align='center',margin=(170, 10, 300, 10))
         
         flow_diagram = pn.pane.SVG("/code/map_app/GUI/Static_data/flow_diagram_8.svg",align= 'center', height=360 ,margin=(100, 50)) 
 
@@ -247,19 +247,19 @@ class map_dashboard:
         empty_map = folium.Map(location=(41,-99), zoom_start=0,width='100%', height='100%')
         self.responsive_map = pn.pane.plot.Folium(empty_map, height=500, width=800, visible=False, name='Map', design=self.design)
         self.bar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Bar chart', height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
+        self.radar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Radar chart', height=350,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.line_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='line chart', height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.box_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Box chart', height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.scatter_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Scatter chart', height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.pie_chart = pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Pie chart', height=350, design=self.design, margin=2,visible = False)
         self.dashboard_column = pn.Column(self.bar_chart,self.box_chart,self.scatter_chart,name='Dashboard', design=self.design)
-        self.responsive_row = pn.Column(self.responsive_map,self.bar_chart,self.line_chart,self.box_chart,self.scatter_chart,self.pie_chart, name = 'Dashboard',visible = False)
+        self.responsive_row = pn.Column(self.responsive_map,self.bar_chart,self.line_chart,self.box_chart,self.scatter_chart,self.pie_chart,self.radar_chart, name = 'Dashboard',visible = False)
         self.dashboard = pn.Row(self.charts_control,self.responsive_row,name='Dashboard')
         self.main_tabs = pn.Tabs( height=1100)
-        self.bar_chart.visible=False
     def create_general_widgets(self):
         self.loading = pn.indicators.LoadingSpinner(value=True, size=20, name='Loading...', visible=False, design=self.design)
 
-    def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart):
+    def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart,radar_chart):
         self.bar_chart.clear()
         self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart', height=375,design=self.design, margin=2))
         self.box_chart.clear()
@@ -268,6 +268,9 @@ class map_dashboard:
         self.scatter_chart.append(pn.pane.Plotly(scatter_chart,name='Scatter chart', height=375,design=self.design, margin=2))
         self.line_chart.clear()
         self.line_chart.append(pn.pane.Plotly(line_chart,name='Scatter chart', height=375,design=self.design, margin=2))
+        self.radar_chart.clear()
+        self.radar_chart.append(pn.pane.Plotly(radar_chart,name='Radar chart', height=350,design=self.design, margin=2))
+
 
 
     def create_widgets(self):
@@ -447,16 +450,19 @@ class map_dashboard:
             fig_scatter = px.scatter(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
             fig_line = px.line(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
             fig_box = px.box(row_filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
+            fig_radar = px.line_polar(filtered_data, theta=self.chart_column, r=self.value_column, color=color_column, line_close=True, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
+
             fig_bar.layout.autosize = True
             fig_line.layout.autosize = True
             fig_pie.layout.autosize = True
             fig_box.layout.autosize = True
             fig_scatter.layout.autosize = True
-        
+            fig_radar.layout.autosize = True
+
         #self.bar_chart.object = fig_bar
         self.pie_chart.object = fig_pie
         #self.scatter_chart.object = fig_scatter
-        self.plotly_charts(fig_bar,fig_scatter,fig_box,fig_line)
+        self.plotly_charts(fig_bar,fig_scatter,fig_box,fig_line,fig_radar)
         #return fig_bar,fig_pie
     
     
@@ -474,7 +480,8 @@ class map_dashboard:
             values_dict[value] = dict(zip(final_data[self.location_column], final_data[value]))
             columns_list.append(value)
         for feature in temp_geo_data['features']:
-            geoid = feature['properties']['GEOID']
+            #print(feature['properties'], flush=True)
+            geoid = feature['properties'][self.geo_feild_value.split('.')[-1]]
             if geoid in id_mapping:
                 feature['properties'][self.value_column] = id_mapping[geoid]
                 for value in values_dict:
@@ -692,6 +699,7 @@ class map_dashboard:
         maping_overlap = self.geo_handler.check_overlap_locations(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
         if (maping_overlap<=99 and self.mapping_failure_count==0) or (maping_overlap<=99 and maping_overlap!=self.latest_overlap_mapping):
             self.loading.visible = False
+            self.create_map_final_button.name = 'Are you Sure ?'
             pn.state.notifications.info(f'Location mapping overlap is {maping_overlap}',duration=0)
             self.mapping_failure_count+=1
             self.latest_overlap_mapping = maping_overlap
@@ -812,7 +820,7 @@ class map_dashboard:
     def show_line_chart(self,event):
         self.line_chart.visible=self.line_show.value
     def show_radar_chart(self,event):
-        pass
+        self.radar_chart.visible = self.radar_show.value
 ##########################################################################################
     def bend_components_actions(self):
         self.geojson_input.param.watch(self.geojson_input_handler,'value')
@@ -835,6 +843,7 @@ class map_dashboard:
         self.box_show.param.watch(self.show_box_chart,'value') 
         self.scatter_show.param.watch(self.show_scatter_chart,'value') 
         self.pie_show.param.watch(self.show_pie_chart,'value') 
+        self.radar_show.param.watch(self.show_radar_chart,'value')
 
     def create_template(self):
         self.bend_components_actions()
