@@ -62,20 +62,29 @@ class geojson_handler:
                 total_lon += lon
                 total_lat += lat
                 num_points += 1
+        if num_points>0:
+            center_lon = total_lon / num_points
+            center_lat = total_lat / num_points
 
-        center_lon = total_lon / num_points
-        center_lat = total_lat / num_points
-
-        return [center_lat, center_lon]
+            return [center_lat, center_lon]
+        else:
+            return 41, -99
     
-    # after choosing mapping
+    def check_overlap_locations(self,name, locations,geo_field='GEOID'):
+        count = 0
+        locations_count = len(locations)
+        for location in self.geojson_dict[name]['features']:
+            if location['properties'][geo_field] in locations:
+                count+=1
+        
+        return (count/locations_count)*100
+    
     def prepare_geometry_data(self,locations,geo_field='GEOID'):
         new_geo_list=[]
-        
         for location in self.return_geojson['features']:
             if location['properties'][geo_field] in locations:
                 new_geo_list.append(location)
-
+        
         self.return_geojson['features']=new_geo_list
 
     def _get_largest_distance(self,geo_data):

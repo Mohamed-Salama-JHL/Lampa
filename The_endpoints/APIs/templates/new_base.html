@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>LAMPA</title>
+    <link rel="icon" href="/app/favicon.ico">
+    <style>
+      /* Add your CSS styles for the header and title bar here */
+      .header {
+        background-color: #333;
+        color: #fff;
+        padding: 0px;
+        text-align: center;
+      }
+
+      .title-bar {
+        background-color: #007bff;
+        color: #fff;
+        padding: 0px;
+        text-align: center;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .floating-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: transparent; /* Transparent background */
+            border: none; /* Remove border */
+            padding: 0; /* Remove padding */
+            width: 48px; /* Set the width of the button */
+            height: 48px; /* Set the height of the button */
+        }
+
+        /* Change SVG icon color to black */
+        .floating-button svg {
+            width: 100%; /* Make the SVG icon fill the button width */
+            height: 100%; /* Make the SVG icon fill the button height */
+            /*fill: black; /* Change the fill color to black */
+        }
+
+    </style>
+  </head>
+  <body>
+    {{ script|safe }}
+    <button class="floating-button" onclick="scrollToBottom()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-big-down-lines" width="24" height="24" viewBox="0 0 24 24" stroke-width="0.5" stroke="#0172B6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M15 12h3.586a1 1 0 0 1 .707 1.707l-6.586 6.586a1 1 0 0 1 -1.414 0l-6.586 -6.586a1 1 0 0 1 .707 -1.707h3.586v-3h6v3z"></path>
+            <path d="M15 3h-6"></path>
+            <path d="M15 6h-6"></path>
+        </svg>
+    </button>
+    <script>
+        function scrollToBottom() {
+            var windowHeight = window.innerHeight;
+            var scrollHeight = document.body.scrollHeight;
+            var currentScrollPosition = window.scrollY;
+            var scrollAmount = 0.4 * windowHeight; // 20% of window height
+
+            // Calculate the new scroll position
+            var newScrollPosition = currentScrollPosition + scrollAmount;
+
+            // Ensure the new scroll position doesn't exceed the total scroll height
+            if (newScrollPosition < scrollHeight - windowHeight) {
+                window.scrollTo(0, newScrollPosition);
+            } else {
+                window.scrollTo(0, scrollHeight - windowHeight);
+            }
+        }
+
+    </script>
+  </body>
+</html>
