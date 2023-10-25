@@ -67,6 +67,7 @@ class map_dashboard:
         self.controls_latest_values={}
         self.mapping_failure_count = 0
         self.latest_overlap_mapping = 100
+        self.control_column_filters_count = 0
         self.create_widgets()
 
     def create_filters_columns(self,filters_features,add_controls=True):
@@ -77,12 +78,18 @@ class map_dashboard:
             self.filter_columns_widgets.append(feature_selction)
         if add_controls:
             self.add_filters_to_control()
-
+    def pop_old_filters(self):
+        last_index = len(self.column_controls_compoent)-1
+        for i in range(self.control_column_filters_count):
+            self.column_controls_compoent.pop(last_index)
+            last_index-=1
     def add_filters_to_control(self):
+        #self.pop_old_filters()
         for w in self.filter_columns_widgets:
             self.column_controls_compoent.append(w)
+            self.control_column_filters_count +=1
         self.column_controls_compoent.append(self.button_row)
-            
+        self.control_column_filters_count +=1
 
     def show_filters_widgets(self):
         
@@ -107,11 +114,12 @@ class map_dashboard:
     def about_page_values(self):
         #pn.state.template.logo = "C:/Users/MS44253/Desktop/logo.png"
 
-        welcome = "## Welcome to Lampa"
+        welcome = pn.pane.Markdown('Welcome to **LAMPA.**',styles={'font-size': '24pt','font-family': 'Microsoft Sans Serif'}) 
 
-        penguins_art = "### Created at James Hutton"#pn.pane.PNG("C:/Users/MS44253/Desktop/logo.png", height=100)
+        penguins_art = pn.pane.Markdown('This application is a free open source visualization tool'
+                                     ,styles={'font-size': '19pt','color':'#676767'}) 
 
-        credit = "### Created at James Hutton"
+        credit = pn.pane.SVG("/code/map_app/GUI/Static_data/Lampa_logo_only.svg",align=('end', 'center'), height=220,margin=(10, 50)) 
 
         instructions = """
         This app ...............................................................
@@ -126,11 +134,11 @@ class map_dashboard:
         """
 
         self.about_page_component =  pn.Column(
-            welcome, penguins_art, credit, instructions, license,
+            welcome, penguins_art, credit,
             sizing_mode='stretch_width', visible = False
         )
     def create_home_page(self):
-        
+
         logo_home = pn.pane.SVG("/code/map_app/GUI/Static_data/Lampa_logo_only.svg",align=('end', 'center'), height=220,margin=(10, 50)) 
         
         info_text =pn.pane.Markdown('Enlighten Your Data with **LAMPA.**',styles={'font-size': '24pt','font-family': 'Microsoft Sans Serif'}) 
@@ -177,13 +185,13 @@ class map_dashboard:
 
     def choosing_columns_fields(self):
         self.third_sentence = pn.pane.Markdown('##### **Step 3:** Choose the proper columns and fields.<br />', styles={"font-size": "10px"})
-        self.select_filter_columns = pn.widgets.MultiChoice(name='Filter_columns', options=[], size=10, design=self.design)
-        self.select_location_column = pn.widgets.Select(name='Location_column', options=[], design=self.design)
-        self.select_year_column = pn.widgets.Select(name='Year_column', options=[], design=self.design)
-        self.select_value_column = pn.widgets.Select(name='value_column', options=[], design=self.design)
+        self.select_filter_columns = pn.widgets.MultiChoice(name='Filter columns', options=[], size=10, design=self.design)
+        self.select_location_column = pn.widgets.Select(name='Location column', options=[], design=self.design)
+        self.select_year_column = pn.widgets.Select(name='Time column', options=[], design=self.design)
+        self.select_value_column = pn.widgets.Select(name='Initial value column', options=[], design=self.design)
         self.create_map_final_button = pn.widgets.Button(name='Create Map', button_type='primary', design=self.design)
         self.select_geo_field = pn.widgets.Select(name='Geo Mapping Field', options=[], design=self.design)
-        self.select_chart_x = pn.widgets.Select(name='Charts Field', options=[], design=self.design)
+        self.select_chart_x = pn.widgets.Select(name='Initial charts column', options=[], design=self.design)
 
         self.column_field_selection_compoent = pn.Column(self.third_sentence, self.select_filter_columns,self.select_location_column,
                                                          self.select_year_column,self.select_value_column,self.select_chart_x,
@@ -199,8 +207,8 @@ class map_dashboard:
         self.box_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-candle-filled', align='center', icon_size='16px')
         self.scatter_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='grain', align='center', icon_size='16px')
         self.pie_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-pie-2', align='center', icon_size='16px')
-        self.charts_show_control = pn.Column(self.map_show,self.radar_show,self.line_show,self.bar_show,self.box_show,self.pie_show,self.scatter_show)
-        self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, sizing_mode='stretch_height',styles={ "background":"#FAFAFA"})
+        self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.scatter_show,self.pie_show,self.radar_show)
+        self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, sizing_mode='stretch_height', height=3050,styles={ "background":"#FAFAFA"})
         
     def creating_map_settings_controls(self):
         self.select_base_map = pn.widgets.Select(name='Base Map', options=self.map_base_option, design=self.design)
@@ -232,7 +240,7 @@ class map_dashboard:
  
         self.regular_controls=pn.Column(self.map_settings_card,self.axes_settings_card, self.year_range,self.agg_buttons,name='controls')
         self.controls_row = pn.Tabs(self.regular_controls,self.charts_control)
-        self.column_controls_compoent = pn.Column(self.final_sentence,self.regular_controls, visible=False)
+        self.column_controls_compoent = pn.Column(self.final_sentence,self.regular_controls, sizing_mode='stretch_height',visible=False)
         
     def creating_titlebar_buttons(self):
         self.about_button = pn.widgets.Button(name="About", button_type="primary", icon ='alert-circle',align=('end','center'),margin = 0)
@@ -246,12 +254,12 @@ class map_dashboard:
     def create_main_area_widgets(self):
         empty_map = folium.Map(location=(41,-99), zoom_start=0,width='100%', height='100%')
         self.responsive_map = pn.pane.plot.Folium(empty_map, height=500, width=800, visible=False, name='Map', design=self.design)
-        self.bar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Bar chart', height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
-        self.radar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Radar chart', height=350,design=self.design, margin=2),sizing_mode='fixed',visible = False)
-        self.line_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='line chart', height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
-        self.box_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Box chart', height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
-        self.scatter_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Scatter chart', height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
-        self.pie_chart = pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Pie chart', height=350, design=self.design, margin=2,visible = False)
+        self.bar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Bar chart', width=800, height=375, design=self.design, margin=2),sizing_mode='fixed',visible = False)
+        self.radar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Radar chart', height=350, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False,margin=2)
+        self.line_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='line chart', height=375, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False)
+        self.box_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Box chart', height=375, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False)
+        self.scatter_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Scatter chart', width=800, height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
+        self.pie_chart = pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Pie chart', height=350, width=800, design=self.design, margin=2,visible = False)
         self.dashboard_column = pn.Column(self.bar_chart,self.box_chart,self.scatter_chart,name='Dashboard', design=self.design)
         self.responsive_row = pn.Column(self.responsive_map,self.bar_chart,self.line_chart,self.box_chart,self.scatter_chart,self.pie_chart,self.radar_chart, name = 'Dashboard',visible = False)
         self.dashboard = pn.Row(self.charts_control,self.responsive_row,name='Dashboard')
@@ -295,7 +303,7 @@ class map_dashboard:
         # Highlevel widgets
         self.controls = pn.WidgetBox(self.upload_dataset_component, self.choose_geo_component, 
                                      self.column_field_selection_compoent, self.column_controls_compoent,
-                                     self.loading,  width=330, sizing_mode='stretch_height',styles={ "background":"#FAFAFA"},visible=False)
+                                     self.loading,height=1100, width=330,styles={ "background":"#FAFAFA"},visible=False)
         
         self.map_area = pn.Column(self.main_tabs, sizing_mode='stretch_height',visible = False)
 
@@ -349,7 +357,9 @@ class map_dashboard:
 
         #columns chosing disable
         self.column_field_selection_compoent.visible = False
-
+        
+        
+        self.controls.height=3085
 
     def update_widgets_dataset_columns_selection(self):
         #columns chosing enable and configure
@@ -393,6 +403,7 @@ class map_dashboard:
         self.controls.visible = True
         self.menu_button.visible = True
         self.home_page_active = True
+        self.create_experiment_button.visible = False
     def show_main_page(self):
         if self.home_page_active:
             self.map_area.visible = True
@@ -413,15 +424,19 @@ class map_dashboard:
         self.about_page_component.visible = False
         self.home_page_component.visible = True
         self.menu_button.disabled = False
+    
     def create_filtered_data_chart(self,features=None,agg=None,year_range=(1997, 2017)):
         if isinstance(self.dataset,pd.DataFrame):
             data_feature_filter = self.dataset.copy()
+            
             for feature in features:
                 if features[feature]==[]:
                     continue
                 data_feature_filter=data_feature_filter[data_feature_filter[feature].isin(features[feature])]
             if self.time_column: 
                 data_feature_filter=data_feature_filter[(data_feature_filter[self.time_column]>=year_range[0])&(data_feature_filter[self.time_column]<=year_range[1])]
+
+            data_feature_filter = data_feature_filter.astype({self.chart_column:'string'})
             if not self.legend_column or self.legend_column == self.chart_column:
                 final_data = data_feature_filter.groupby([self.chart_column])[self.value_column].agg(agg).reset_index()
             else:
@@ -450,7 +465,7 @@ class map_dashboard:
             fig_scatter = px.scatter(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
             fig_line = px.line(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
             fig_box = px.box(row_filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
-            fig_radar = px.line_polar(filtered_data, theta=self.chart_column, r=self.value_column, color=color_column, line_close=True, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
+            fig_radar = px.line_polar(filtered_data, theta=self.chart_column, r=self.value_column, color=color_column, line_close=True, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=20, b=20),)
 
             fig_bar.layout.autosize = True
             fig_line.layout.autosize = True
@@ -679,7 +694,7 @@ class map_dashboard:
         self.loading.visible = True
         data_value = self.file_input.value
         self.filter_columns_names = list(self.select_filter_columns.value)
-        self.create_filters_columns(self.filter_columns_names)
+        
 
         string_io = StringIO(data_value.decode("utf8"))
         dataset_preprocessor = data_handler(string_io,
@@ -700,17 +715,17 @@ class map_dashboard:
         if (maping_overlap<=99 and self.mapping_failure_count==0) or (maping_overlap<=99 and maping_overlap!=self.latest_overlap_mapping):
             self.loading.visible = False
             self.create_map_final_button.name = 'Are you Sure ?'
-            pn.state.notifications.info(f'Location mapping overlap is {maping_overlap}',duration=0)
+            pn.state.notifications.error(f'<span style="font-family: sans-serif; font-size: 15px;">Location mapping overlap is {maping_overlap}%</span>',duration=0)
             self.mapping_failure_count+=1
             self.latest_overlap_mapping = maping_overlap
             return None
+        
+        self.create_filters_columns(self.filter_columns_names)
         self.geo_data = self.geo_handler.get_single_geojson(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
         
         self.create_map()
-        #self.responsive_map.object=fig
-        print('test', self.bar_chart.visible)
+
         self.update_widgets_map_create()
-        print('test', self.bar_chart.visible)
 
 
     def check_what_changed(self,filters_values):
@@ -858,7 +873,7 @@ class map_dashboard:
                         , design=self.design, sizing_mode="stretch_width")
         
         
-        app_layout = pn.Column(
+        self.app_layout = pn.Column(
             title_bar,
             self.home_page_component,
             self.about_page_component,
@@ -869,7 +884,7 @@ class map_dashboard:
             ),
             sizing_mode='stretch_both', design=self.design,
         )
-        return app_layout
+        return self.app_layout
 
         
     

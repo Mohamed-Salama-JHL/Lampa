@@ -17,7 +17,7 @@ async def root():
 async def bkapp_page(request: Request):
     script = server_document('http://127.0.0.1:5000/app')
     #print(script)
-    return templates.TemplateResponse("base.html", {"request": request, "script": script})
+    return templates.TemplateResponse("new_base.html", {"request": request, "script": script})
 
 
 
