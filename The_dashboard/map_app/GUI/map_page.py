@@ -167,7 +167,7 @@ class map_dashboard:
     def uploading_dataset_components(self):
         self.first_sentence = pn.pane.Markdown('##### **Step 1:** Upload a dataset.<br />', styles={"font-size": "10px"})
         self.file_input = pn.widgets.FileInput(name= 'Upload dataset', accept='.csv,.xlsx', design=self.design)
-        self.next_choose_geo = pn.widgets.Button(name='Next', button_type='primary', design=self.design)
+        self.next_choose_geo = pn.widgets.Button(name='Next', button_type='primary', disabled= True, design=self.design)
         
         self.upload_dataset_component = pn.Column(self.first_sentence,self.file_input,self.next_choose_geo, visible=True)
     
@@ -178,7 +178,7 @@ class map_dashboard:
         
         self.second_sentence = pn.pane.Markdown('##### **Step 2:** Choose or Upload a GeoJson.<br />', styles={"font-size": "10px"})
         self.select_geo = pn.widgets.Select(name='Select Map', options=geo_maps_names, design=self.design)
-        self.next_map_button = pn.widgets.Button(name='Next', button_type='primary', design=self.design)
+        self.next_map_button = pn.widgets.Button(name='Next', button_type='primary', disabled= True,  design=self.design)
         self.geojson_input = pn.widgets.FileInput(name='Upload GeoJson', visible=False, accept='.geojson,.json', design=self.design)
 
         self.choose_geo_component = pn.Column(self.second_sentence,self.select_geo,self.geojson_input,self.next_map_button, visible=False)
@@ -651,6 +651,7 @@ class map_dashboard:
         self.dataset = dataset_preprocessor.get_data()
 
         self.add_main_tab(pn.widgets.Tabulator(self.dataset,name='Dataset'))
+        self.next_choose_geo.disabled = False
         self.loading.visible = False
 
     def geojson_input_handler(self,event):
@@ -660,7 +661,7 @@ class map_dashboard:
         
         geo_string_io = StringIO(geo_data_value.decode("utf8"))
         geojson_data = json.load(geo_string_io)
-
+        self.next_map_button.disabled = False
         self.add_main_tab(pn.pane.JSON(geojson_data, name='GeoJSON',theme='light'))
 
     def reset_button_handler(self,event):
@@ -670,6 +671,7 @@ class map_dashboard:
         if self.select_geo.value == 'Upload Geojson':
             self.geojson_input.visible=True
         else:
+            self.next_map_button.disabled = False
             self.add_main_tab(pn.pane.JSON(self.geo_handler.get_single_geojson(self.select_geo.value), name='GeoJSON',theme='light'))
 
         
