@@ -8,7 +8,7 @@ from GUI.map_page import createApp
 
 
 
-pn.serve({'/app': createApp},
+pn.serve(createApp,
         port=5000, allow_websocket_origin=["*"],
         address="0.0.0.0", show=False,
         websocket_max_message_size=150*1024*1014,

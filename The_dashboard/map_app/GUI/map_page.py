@@ -73,7 +73,7 @@ class map_dashboard:
     def create_filters_columns(self,filters_features,add_controls=True):
         for feature in filters_features:
             unique_values= list(self.dataset[feature].unique())
-            feature_selction = pn.widgets.MultiChoice(name= feature ,options=unique_values,size=min(10,len(unique_values)),  visible=False)
+            feature_selction = pn.widgets.MultiChoice(name= feature ,options=unique_values,  visible=False)
             self.filters_reset_values[feature] = unique_values
             self.filter_columns_widgets.append(feature_selction)
         if add_controls:
@@ -185,7 +185,7 @@ class map_dashboard:
 
     def choosing_columns_fields(self):
         self.third_sentence = pn.pane.Markdown('##### **Step 3:** Choose the proper columns and fields.<br />', styles={"font-size": "10px"})
-        self.select_filter_columns = pn.widgets.MultiChoice(name='Filter columns', options=[], size=10, design=self.design)
+        self.select_filter_columns = pn.widgets.MultiChoice(name='Filter columns', options=[],  design=self.design)
         self.select_location_column = pn.widgets.Select(name='Location column', options=[], design=self.design)
         self.select_year_column = pn.widgets.Select(name='Time column', options=[], design=self.design)
         self.select_value_column = pn.widgets.Select(name='Initial value column', options=[], design=self.design)
@@ -214,7 +214,7 @@ class map_dashboard:
         self.select_base_map = pn.widgets.Select(name='Base Map', options=self.map_base_option, design=self.design)
         self.select_color_map = pn.widgets.Select(name='Map Coloring', options=list(self.map_color_option.keys()), design=self.design,value = 'Red-Yellow-Blue')
         self.transparency_map_range = pn.widgets.IntSlider(name='Transparency level',start=0, end=100, value=50, step=1, design=self.design)
-        self.select_tooltip = pn.widgets.MultiChoice(name='Tooltip columns', options=[], size=10, design=self.design)
+        self.select_tooltip = pn.widgets.MultiChoice(name='Tooltip columns', options=[], design=self.design)
         self.map_settings_card = pn.Card(self.select_base_map,self.select_color_map,self.transparency_map_range,self.select_tooltip, title="<h1 style='font-size: 15px;'>Map settings</h1>", styles={"border": "none", "box-shadow": "none"})
     
     def creating_general_controls(self):

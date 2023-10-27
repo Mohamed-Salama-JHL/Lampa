@@ -15,7 +15,7 @@ async def root():
 
 @app.get("/dashboard")
 async def bkapp_page(request: Request):
-    script = server_document('http://127.0.0.1:5000/app')
+    script = server_document('http://127.0.0.1:5000')
     #print(script)
     return templates.TemplateResponse("new_base.html", {"request": request, "script": script})
 
