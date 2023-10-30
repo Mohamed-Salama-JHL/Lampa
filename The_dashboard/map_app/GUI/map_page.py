@@ -30,6 +30,7 @@ from .styles import *
 import copy
 
 
+
 pn.extension('floatpanel')
 
 pn.extension('tabulator')
@@ -41,6 +42,8 @@ pn.extension(
 
      design='bootstrap', template='material' 
 )
+
+
 class map_dashboard:
     def __init__(self,dataset=None) -> None:
         self.dataset = dataset
