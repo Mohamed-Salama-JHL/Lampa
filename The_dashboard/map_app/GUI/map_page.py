@@ -44,6 +44,7 @@ pn.extension(
 )
 
 
+
 class map_dashboard:
     def __init__(self,dataset=None) -> None:
         self.dataset = dataset

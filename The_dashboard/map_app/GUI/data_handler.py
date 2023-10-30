@@ -10,7 +10,13 @@ class data_handler:
         self.prepare_data()
         
     def prepare_data(self):
-        self.data = pd.read_csv(self.raw_data,dtype={self.location_column:'string'})
+        dataset = None
+        try:
+            dataset = pd.read_csv(self.raw_data,dtype={self.location_column:'string'})
+        except:
+            dataset = pd.read_excel(self.raw_data,dtype={self.location_column:'string'})
+
+        self.data = dataset
         #self.data.columns= self.data.columns.str.lower()
         #self.location_column = self.location_column.lower()
         

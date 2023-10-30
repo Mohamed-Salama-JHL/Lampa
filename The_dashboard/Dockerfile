@@ -15,6 +15,6 @@ COPY . .
 EXPOSE 5000
 # Run app.py when the container launches
 #CMD ["panel", "serve", "map_app/main.py", "--allow-websocket-origin=*"]
-CMD ["python", "/code/map_app/main.py"]
+CMD ["python","-W", "ignore", "/code/map_app/main.py"]
 
 
