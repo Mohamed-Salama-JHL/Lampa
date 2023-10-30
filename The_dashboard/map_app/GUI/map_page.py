@@ -29,7 +29,11 @@ from .geo_data_handler import *
 from .styles import *
 import copy
 
+import logging
 
+
+
+logging.basicConfig( level=logging.ERROR,force=True)
 
 pn.extension('floatpanel')
 
@@ -212,7 +216,7 @@ class map_dashboard:
         self.scatter_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='grain', align='center', icon_size='16px')
         self.pie_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-pie-2', align='center', icon_size='16px')
         self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.scatter_show,self.pie_show,self.radar_show)
-        self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, sizing_mode='stretch_height', height=3050,styles={ "background":"#FAFAFA"})
+        self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, height=3050,styles={ "background":"#FAFAFA"})
         
     def creating_map_settings_controls(self):
         self.select_base_map = pn.widgets.Select(name='Base Map', options=self.map_base_option, design=self.design)
@@ -273,15 +277,15 @@ class map_dashboard:
 
     def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart,radar_chart):
         self.bar_chart.clear()
-        self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart', height=375,design=self.design, margin=2))
+        self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart',width=800, height=375,design=self.design, margin=2))
         self.box_chart.clear()
-        self.box_chart.append(pn.pane.Plotly(box_chart,name='Box chart', height=375,design=self.design, margin=2))
+        self.box_chart.append(pn.pane.Plotly(box_chart,name='Box chart',width=800, height=375,design=self.design, margin=2))
         self.scatter_chart.clear()
-        self.scatter_chart.append(pn.pane.Plotly(scatter_chart,name='Scatter chart', height=375,design=self.design, margin=2))
+        self.scatter_chart.append(pn.pane.Plotly(scatter_chart,name='Scatter chart',width=800, height=375,design=self.design, margin=2))
         self.line_chart.clear()
-        self.line_chart.append(pn.pane.Plotly(line_chart,name='Scatter chart', height=375,design=self.design, margin=2))
+        self.line_chart.append(pn.pane.Plotly(line_chart,name='Scatter chart',width=800, height=375,design=self.design, margin=2))
         self.radar_chart.clear()
-        self.radar_chart.append(pn.pane.Plotly(radar_chart,name='Radar chart', height=350,design=self.design, margin=2))
+        self.radar_chart.append(pn.pane.Plotly(radar_chart,name='Radar chart',width=800, height=350,design=self.design, margin=2))
 
 
 
