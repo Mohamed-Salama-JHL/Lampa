@@ -648,10 +648,11 @@ class map_dashboard:
     def dataset_input_handler(self,event):
         self.loading.visible = True
         data_value = self.file_input.value
+        data_filename = self.file_input.filename
         if not data_value or not isinstance(data_value, bytes):
             return None
-        string_io = StringIO(data_value.decode("utf8"))
-        dataset_preprocessor = data_handler(string_io)
+        #string_io = StringIO(data_value.decode("utf8"))
+        dataset_preprocessor = data_handler(data_value,file_name=data_filename)
         self.dataset = dataset_preprocessor.get_data()
 
         self.add_main_tab(pn.widgets.Tabulator(self.dataset,name='Dataset'))
@@ -697,15 +698,17 @@ class map_dashboard:
     def map_create_new(self,event):
         self.loading.visible = True
         data_value = self.file_input.value
+        data_filename = self.file_input.filename
         self.filter_columns_names = list(self.select_filter_columns.value)
         
 
-        string_io = StringIO(data_value.decode("utf8"))
-        dataset_preprocessor = data_handler(string_io,
+        #string_io = StringIO(data_value.decode("utf8"))
+        dataset_preprocessor = data_handler(data_value,
                                             location_column=self.select_location_column.value,
                                             time_column=self.select_year_column.value,
                                             value_column= self.select_value_column.value,
-                                            chart_column=self.select_chart_x.value)
+                                            chart_column=self.select_chart_x.value,
+                                            file_name=data_filename)
         
         self.dataset = dataset_preprocessor.get_data()
         self.location_column = dataset_preprocessor.get_location_column()
