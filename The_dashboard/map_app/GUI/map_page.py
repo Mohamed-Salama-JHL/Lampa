@@ -263,7 +263,7 @@ class map_dashboard:
         config = {"headerControls": {"close": "remove", 'size':'xs',"maximize" : "remove","normalize": "remove","minimize": "remove","smallify": "remove"}}
         empty_map = folium.Map(location=(41,-99), zoom_start=0,width='100%', height='100%')
         self.responsive_map = pn.pane.plot.Folium(empty_map, height=500, width=800, visible=False, name='Map', design=self.design)
-        self.bar_chart = pn.layout.FloatPanel(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"), width=800, height=375, design=self.design, margin=2),name='<span style="font-family: sans-serif;">Bar chart</span>',theme = '#0172B6',contained=True,config=config,visible = False)
+        self.bar_chart = pn.layout.FloatPanel(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"), design=self.design, margin=2,  width=800, height=375),name='<span style="font-family: sans-serif;">Bar chart</span>',theme = '#0172B6',contained=True,config=config,visible = False)
         self.radar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Radar chart', height=350, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False,margin=2)
         self.line_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='line chart', height=375, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.box_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Box chart', height=375, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False)
@@ -278,7 +278,7 @@ class map_dashboard:
 
     def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart,radar_chart):
         self.bar_chart.clear()
-        self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart',width=800, height=375,design=self.design, margin=2))
+        self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart',  width=800, height=375,design=self.design, margin=2))
         self.box_chart.clear()
         self.box_chart.append(pn.pane.Plotly(box_chart,name='Box chart',width=800, height=375,design=self.design, margin=2))
         self.scatter_chart.clear()
