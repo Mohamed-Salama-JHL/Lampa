@@ -748,6 +748,7 @@ class map_dashboard:
                 self.mapping_failure_count+=1
                 self.latest_overlap_mapping = maping_overlap
                 return None
+            
         
         self.create_filters_columns(self.filter_columns_names)
         if not self.skip_map_flag:
