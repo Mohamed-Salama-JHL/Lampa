@@ -1,11 +1,8 @@
 import panel as pn
 from bokeh.embed import server_document
-from fastapi import FastAPI, Request
-from fastapi.templating import Jinja2Templates
 from GUI.map_page import createApp
 from bokeh.settings import settings
 import logging
-
 
 
 logging.basicConfig( level=logging.ERROR,force=True)

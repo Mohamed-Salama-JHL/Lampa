@@ -449,6 +449,7 @@ class map_dashboard:
                 data_feature_filter=data_feature_filter[(data_feature_filter[self.time_column]>=year_range[0])&(data_feature_filter[self.time_column]<=year_range[1])]
 
             data_feature_filter = data_feature_filter.astype({self.chart_column:'string'})
+            #print(self.chart_column,self.legend_column,self.value_column,(not self.legend_column or self.legend_column == self.chart_column) )
             if not self.legend_column or self.legend_column == self.chart_column:
                 final_data = data_feature_filter.groupby([self.chart_column])[self.value_column].agg(agg).reset_index()
             else:
@@ -802,7 +803,7 @@ class map_dashboard:
         new_features = self.get_filters_values()
         change_type = 2
         if not self.skip_map_flag:
-            self.check_what_changed(new_features)
+            change_type = self.check_what_changed(new_features)
         #Change both
         agg = self.agg_buttons.value
         year_range_value=self.year_range.value
