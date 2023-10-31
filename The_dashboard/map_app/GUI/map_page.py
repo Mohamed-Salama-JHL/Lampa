@@ -260,16 +260,17 @@ class map_dashboard:
     
 
     def create_main_area_widgets(self):
+        config = {"headerControls": {"close": "remove", 'size':'xs',"maximize" : "remove","normalize": "remove","minimize": "remove","smallify": "remove"}}
         empty_map = folium.Map(location=(41,-99), zoom_start=0,width='100%', height='100%')
         self.responsive_map = pn.pane.plot.Folium(empty_map, height=500, width=800, visible=False, name='Map', design=self.design)
-        self.bar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Bar chart', width=800, height=375, design=self.design, margin=2),sizing_mode='fixed',visible = False)
+        self.bar_chart = pn.layout.FloatPanel(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"), width=800, height=375, design=self.design, margin=2),name='<span style="font-family: sans-serif;">Bar chart</span>',theme = '#0172B6',contained=True,config=config,visible = False)
         self.radar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Radar chart', height=350, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False,margin=2)
         self.line_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='line chart', height=375, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.box_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Box chart', height=375, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.scatter_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Scatter chart', width=800, height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.pie_chart = pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Pie chart', height=350, width=800, design=self.design, margin=2,visible = False)
         self.dashboard_column = pn.Column(self.bar_chart,self.box_chart,self.scatter_chart,name='Dashboard', design=self.design)
-        self.responsive_row = pn.Column(self.responsive_map,self.bar_chart,self.line_chart,self.box_chart,self.scatter_chart,self.pie_chart,self.radar_chart, name = 'Dashboard',visible = False)
+        self.responsive_row = pn.Column(self.responsive_map,self.bar_chart,self.line_chart,self.box_chart,self.scatter_chart,self.pie_chart,self.radar_chart, width = 1500,name = 'Dashboard',visible = False)
         self.dashboard = pn.Row(self.charts_control,self.responsive_row,name='Dashboard')
         self.main_tabs = pn.Tabs( height=1100)
     def create_general_widgets(self):
