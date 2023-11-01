@@ -1,16 +1,28 @@
 import pandas as pd
-
+from io import StringIO,BytesIO
 class data_handler:
-    def __init__(self,raw_data,location_column='locations',time_column='None',value_column='value',chart_column='locations') -> None:
+    def __init__(self,raw_data,location_column='locations',time_column='None',value_column='value',chart_column='locations',file_name=None) -> None:
         self.raw_data=raw_data
         self.location_column= location_column
         self.time_column = time_column
         self.value_column = value_column
         self.chart_column=chart_column
+        self.file_name = file_name
         self.prepare_data()
         
     def prepare_data(self):
-        self.data = pd.read_csv(self.raw_data,dtype={self.location_column:'string'})
+        dataset = None
+
+        if self.file_name!=None:
+            if self.file_name.split('.')[-1]=='csv':
+                string_io = StringIO(self.raw_data.decode("utf8"))
+                dataset = pd.read_csv(string_io,dtype={self.location_column:'string'})
+            elif self.file_name.split('.')[-1]=='xlsx':
+                string_io = BytesIO(self.raw_data)
+                dataset = pd.read_excel(string_io,dtype={self.location_column:'string'})
+
+
+        self.data = dataset
         #self.data.columns= self.data.columns.str.lower()
         #self.location_column = self.location_column.lower()
         

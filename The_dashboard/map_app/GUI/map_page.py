@@ -29,6 +29,11 @@ from .geo_data_handler import *
 from .styles import *
 import copy
 
+import logging
+
+
+
+logging.basicConfig( level=logging.ERROR,force=True)
 
 pn.extension('floatpanel')
 
@@ -41,6 +46,9 @@ pn.extension(
 
      design='bootstrap', template='material' 
 )
+
+
+
 class map_dashboard:
     def __init__(self,dataset=None) -> None:
         self.dataset = dataset
@@ -68,12 +76,13 @@ class map_dashboard:
         self.mapping_failure_count = 0
         self.latest_overlap_mapping = 100
         self.control_column_filters_count = 0
+        self.skip_map_flag = False
         self.create_widgets()
 
     def create_filters_columns(self,filters_features,add_controls=True):
         for feature in filters_features:
             unique_values= list(self.dataset[feature].unique())
-            feature_selction = pn.widgets.MultiChoice(name= feature ,options=unique_values,size=min(10,len(unique_values)),  visible=False)
+            feature_selction = pn.widgets.MultiChoice(name= feature ,options=unique_values,  visible=False)
             self.filters_reset_values[feature] = unique_values
             self.filter_columns_widgets.append(feature_selction)
         if add_controls:
@@ -167,7 +176,7 @@ class map_dashboard:
     def uploading_dataset_components(self):
         self.first_sentence = pn.pane.Markdown('##### **Step 1:** Upload a dataset.<br />', styles={"font-size": "10px"})
         self.file_input = pn.widgets.FileInput(name= 'Upload dataset', accept='.csv,.xlsx', design=self.design)
-        self.next_choose_geo = pn.widgets.Button(name='Next', button_type='primary', design=self.design)
+        self.next_choose_geo = pn.widgets.Button(name='Next', button_type='primary', disabled= True, design=self.design)
         
         self.upload_dataset_component = pn.Column(self.first_sentence,self.file_input,self.next_choose_geo, visible=True)
     
@@ -178,20 +187,21 @@ class map_dashboard:
         
         self.second_sentence = pn.pane.Markdown('##### **Step 2:** Choose or Upload a GeoJson.<br />', styles={"font-size": "10px"})
         self.select_geo = pn.widgets.Select(name='Select Map', options=geo_maps_names, design=self.design)
-        self.next_map_button = pn.widgets.Button(name='Next', button_type='primary', design=self.design)
+        self.next_map_button = pn.widgets.Button(name='Next', button_type='primary', disabled= True, design=self.design)
+        self.skip_map_button = pn.widgets.Button(name='Skip', button_type='primary', disabled= False, design=self.design)
         self.geojson_input = pn.widgets.FileInput(name='Upload GeoJson', visible=False, accept='.geojson,.json', design=self.design)
-
-        self.choose_geo_component = pn.Column(self.second_sentence,self.select_geo,self.geojson_input,self.next_map_button, visible=False)
+        self.button_row_map = pn.Row(self.next_map_button,self.skip_map_button, design=self.design)
+        self.choose_geo_component = pn.Column(self.second_sentence,self.select_geo,self.geojson_input,self.button_row_map, visible=False)
 
     def choosing_columns_fields(self):
         self.third_sentence = pn.pane.Markdown('##### **Step 3:** Choose the proper columns and fields.<br />', styles={"font-size": "10px"})
-        self.select_filter_columns = pn.widgets.MultiChoice(name='Filter columns', options=[], size=10, design=self.design)
+        self.select_filter_columns = pn.widgets.MultiChoice(name='Filter columns', options=[],  design=self.design)
         self.select_location_column = pn.widgets.Select(name='Location column', options=[], design=self.design)
         self.select_year_column = pn.widgets.Select(name='Time column', options=[], design=self.design)
-        self.select_value_column = pn.widgets.Select(name='Initial value column', options=[], design=self.design)
+        self.select_value_column = pn.widgets.Select(name='Initial value column (Y-axis)', options=[], design=self.design)
         self.create_map_final_button = pn.widgets.Button(name='Create Map', button_type='primary', design=self.design)
         self.select_geo_field = pn.widgets.Select(name='Geo Mapping Field', options=[], design=self.design)
-        self.select_chart_x = pn.widgets.Select(name='Initial charts column', options=[], design=self.design)
+        self.select_chart_x = pn.widgets.Select(name='Initial charts column (X-axis)', options=[], design=self.design)
 
         self.column_field_selection_compoent = pn.Column(self.third_sentence, self.select_filter_columns,self.select_location_column,
                                                          self.select_year_column,self.select_value_column,self.select_chart_x,
@@ -208,13 +218,13 @@ class map_dashboard:
         self.scatter_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='grain', align='center', icon_size='16px')
         self.pie_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-pie-2', align='center', icon_size='16px')
         self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.scatter_show,self.pie_show,self.radar_show)
-        self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, sizing_mode='stretch_height', height=3050,styles={ "background":"#FAFAFA"})
+        self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, height=3050,styles={ "background":"#FAFAFA"})
         
     def creating_map_settings_controls(self):
         self.select_base_map = pn.widgets.Select(name='Base Map', options=self.map_base_option, design=self.design)
         self.select_color_map = pn.widgets.Select(name='Map Coloring', options=list(self.map_color_option.keys()), design=self.design,value = 'Red-Yellow-Blue')
         self.transparency_map_range = pn.widgets.IntSlider(name='Transparency level',start=0, end=100, value=50, step=1, design=self.design)
-        self.select_tooltip = pn.widgets.MultiChoice(name='Tooltip columns', options=[], size=10, design=self.design)
+        self.select_tooltip = pn.widgets.MultiChoice(name='Tooltip columns', options=[], design=self.design)
         self.map_settings_card = pn.Card(self.select_base_map,self.select_color_map,self.transparency_map_range,self.select_tooltip, title="<h1 style='font-size: 15px;'>Map settings</h1>", styles={"border": "none", "box-shadow": "none"})
     
     def creating_general_controls(self):
@@ -269,15 +279,15 @@ class map_dashboard:
 
     def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart,radar_chart):
         self.bar_chart.clear()
-        self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart', height=375,design=self.design, margin=2))
+        self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart',width=800, height=375,design=self.design, margin=2))
         self.box_chart.clear()
-        self.box_chart.append(pn.pane.Plotly(box_chart,name='Box chart', height=375,design=self.design, margin=2))
+        self.box_chart.append(pn.pane.Plotly(box_chart,name='Box chart',width=800, height=375,design=self.design, margin=2))
         self.scatter_chart.clear()
-        self.scatter_chart.append(pn.pane.Plotly(scatter_chart,name='Scatter chart', height=375,design=self.design, margin=2))
+        self.scatter_chart.append(pn.pane.Plotly(scatter_chart,name='Scatter chart',width=800, height=375,design=self.design, margin=2))
         self.line_chart.clear()
-        self.line_chart.append(pn.pane.Plotly(line_chart,name='Scatter chart', height=375,design=self.design, margin=2))
+        self.line_chart.append(pn.pane.Plotly(line_chart,name='Scatter chart',width=800, height=375,design=self.design, margin=2))
         self.radar_chart.clear()
-        self.radar_chart.append(pn.pane.Plotly(radar_chart,name='Radar chart', height=350,design=self.design, margin=2))
+        self.radar_chart.append(pn.pane.Plotly(radar_chart,name='Radar chart',width=800, height=350,design=self.design, margin=2))
 
 
 
@@ -330,8 +340,8 @@ class map_dashboard:
         
         self.loading.visible = False
         self.column_controls_compoent.visible = True
-
-        self.responsive_map.visible = True
+        if not self.skip_map_flag:
+            self.responsive_map.visible = True
         self.responsive_row.visible = True
 
         #self.bar_chart.visible = True
@@ -368,25 +378,27 @@ class map_dashboard:
         columns = list(self.dataset.columns)
         columns_none = columns.copy()
         columns_none.append('None')
-        geo_fields = self.geo_handler.get_all_fields()
-        value_geo_field = 'GEOID' if 'GEOID' in geo_fields else geo_fields[0]
+        
+        if not self.skip_map_flag:
+            geo_fields = self.geo_handler.get_all_fields()
+            value_geo_field = 'GEOID' if 'GEOID' in geo_fields else geo_fields[0]
+            self.select_geo_field.options = geo_fields
+            self.select_geo_field.value = value_geo_field
+            self.select_location_column.options = columns
+            self.select_location_column.value = columns[0]
+
 
         self.column_field_selection_compoent.visible = True
-
         self.select_filter_columns.options = columns
-        self.select_location_column.options = columns
         self.select_value_column.options = columns
         self.select_year_column.options = columns_none
-        self.select_geo_field.options = geo_fields
         self.select_chart_x.options = columns
 
         #self.select_filter_columns.value = columns
-        self.select_location_column.value = columns[0]
+        
         self.select_value_column.value = columns[0]
         self.select_year_column.value = columns_none[-1]
-        self.select_geo_field.value = value_geo_field
         self.select_chart_x.value = columns[0]
-
         self.select_filter_columns.size = min(18,len(columns))
         #uploading data widget disable
         self.choose_geo_component.visible = False    
@@ -437,6 +449,7 @@ class map_dashboard:
                 data_feature_filter=data_feature_filter[(data_feature_filter[self.time_column]>=year_range[0])&(data_feature_filter[self.time_column]<=year_range[1])]
 
             data_feature_filter = data_feature_filter.astype({self.chart_column:'string'})
+            #print(self.chart_column,self.legend_column,self.value_column,(not self.legend_column or self.legend_column == self.chart_column) )
             if not self.legend_column or self.legend_column == self.chart_column:
                 final_data = data_feature_filter.groupby([self.chart_column])[self.value_column].agg(agg).reset_index()
             else:
@@ -629,6 +642,16 @@ class map_dashboard:
     
 
 ##########################################################################################
+
+    def disable_map(self,event):
+        self.map_settings_card.visible = False
+        self.map_show.value = False
+        self.map_show.visible = False
+        self.responsive_map.visible = False
+        self.select_geo_field.visible = False
+        self.select_location_column.visible = False
+        self.skip_map_flag=True
+        self.update_widgets_dataset_columns_selection()
     def show_control_side_bar(self,event):
         self.controls.visible = not self.controls.visible
     def geo_data_collecting(self,event):
@@ -644,13 +667,15 @@ class map_dashboard:
     def dataset_input_handler(self,event):
         self.loading.visible = True
         data_value = self.file_input.value
+        data_filename = self.file_input.filename
         if not data_value or not isinstance(data_value, bytes):
             return None
-        string_io = StringIO(data_value.decode("utf8"))
-        dataset_preprocessor = data_handler(string_io)
+        #string_io = StringIO(data_value.decode("utf8"))
+        dataset_preprocessor = data_handler(data_value,file_name=data_filename)
         self.dataset = dataset_preprocessor.get_data()
 
         self.add_main_tab(pn.widgets.Tabulator(self.dataset,name='Dataset'))
+        self.next_choose_geo.disabled = False
         self.loading.visible = False
 
     def geojson_input_handler(self,event):
@@ -660,7 +685,7 @@ class map_dashboard:
         
         geo_string_io = StringIO(geo_data_value.decode("utf8"))
         geojson_data = json.load(geo_string_io)
-
+        self.next_map_button.disabled = False
         self.add_main_tab(pn.pane.JSON(geojson_data, name='GeoJSON',theme='light'))
 
     def reset_button_handler(self,event):
@@ -670,6 +695,7 @@ class map_dashboard:
         if self.select_geo.value == 'Upload Geojson':
             self.geojson_input.visible=True
         else:
+            self.next_map_button.disabled = False
             self.add_main_tab(pn.pane.JSON(self.geo_handler.get_single_geojson(self.select_geo.value), name='GeoJSON',theme='light'))
 
         
@@ -693,37 +719,42 @@ class map_dashboard:
     def map_create_new(self,event):
         self.loading.visible = True
         data_value = self.file_input.value
+        data_filename = self.file_input.filename
         self.filter_columns_names = list(self.select_filter_columns.value)
         
 
-        string_io = StringIO(data_value.decode("utf8"))
-        dataset_preprocessor = data_handler(string_io,
+        #string_io = StringIO(data_value.decode("utf8"))
+        dataset_preprocessor = data_handler(data_value,
                                             location_column=self.select_location_column.value,
                                             time_column=self.select_year_column.value,
                                             value_column= self.select_value_column.value,
-                                            chart_column=self.select_chart_x.value)
+                                            chart_column=self.select_chart_x.value,
+                                            file_name=data_filename)
         
         self.dataset = dataset_preprocessor.get_data()
         self.location_column = dataset_preprocessor.get_location_column()
         self.time_column = dataset_preprocessor.get_time_column()
         self.value_column = dataset_preprocessor.get_value_column()
         self.chart_column = dataset_preprocessor.get_chart_column()
-        self.geo_feild_value = 'feature.properties.'+self.select_geo_field.value
-        print(self.geo_feild_value)
+        if not self.skip_map_flag:
+            self.geo_feild_value = 'feature.properties.'+self.select_geo_field.value
+            print(self.geo_feild_value)
 
-        maping_overlap = self.geo_handler.check_overlap_locations(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
-        if (maping_overlap<=99 and self.mapping_failure_count==0) or (maping_overlap<=99 and maping_overlap!=self.latest_overlap_mapping):
-            self.loading.visible = False
-            self.create_map_final_button.name = 'Are you Sure ?'
-            pn.state.notifications.error(f'<span style="font-family: sans-serif; font-size: 15px;">Location mapping overlap is {maping_overlap}%</span>',duration=0)
-            self.mapping_failure_count+=1
-            self.latest_overlap_mapping = maping_overlap
-            return None
+            maping_overlap = self.geo_handler.check_overlap_locations(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
+            if (maping_overlap<=99 and self.mapping_failure_count==0) or (maping_overlap<=99 and maping_overlap!=self.latest_overlap_mapping):
+                self.loading.visible = False
+                self.create_map_final_button.name = 'Are you Sure ?'
+                pn.state.notifications.error(f'<span style="font-family: sans-serif; font-size: 15px;">Location mapping overlap is {maping_overlap}%</span>',duration=0)
+                self.mapping_failure_count+=1
+                self.latest_overlap_mapping = maping_overlap
+                return None
+            
         
         self.create_filters_columns(self.filter_columns_names)
-        self.geo_data = self.geo_handler.get_single_geojson(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
-        
-        self.create_map()
+        if not self.skip_map_flag:
+            self.geo_data = self.geo_handler.get_single_geojson(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
+            
+            self.create_map()
 
         self.update_widgets_map_create()
 
@@ -771,7 +802,9 @@ class map_dashboard:
     
     def map_update(self,event):
         new_features = self.get_filters_values()
-        change_type = self.check_what_changed(new_features)
+        change_type = 2
+        if not self.skip_map_flag:
+            change_type = self.check_what_changed(new_features)
         #Change both
         agg = self.agg_buttons.value
         year_range_value=self.year_range.value
@@ -851,6 +884,7 @@ class map_dashboard:
         self.menu_button.param.watch(self.show_control_side_bar,'value')
         self.create_experiment_button.param.watch(self.show_experiment_page,'value')
         self.create_experiment_button_page.param.watch(self.show_experiment_page,'value')
+        self.skip_map_button.param.watch(self.disable_map,'value')
         self.map_show.param.watch(self.show_map_chart,'value') 
         #self.radar_show.param.watch(self.show_control_side_bar,'value') 
         self.line_show.param.watch(self.show_line_chart,'value') 
