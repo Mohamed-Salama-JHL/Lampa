@@ -378,7 +378,7 @@ class map_dashboard:
         columns = list(self.dataset.columns)
         columns_none = columns.copy()
         columns_none.append('None')
-        
+        numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
         if not self.skip_map_flag:
             geo_fields = self.geo_handler.get_all_fields()
             value_geo_field = 'GEOID' if 'GEOID' in geo_fields else geo_fields[0]
@@ -540,7 +540,7 @@ class map_dashboard:
     def create_map(self,features=None,agg=None,year_range=(1997, 2017),transparency_level = 0.5, base_map = 'OpenStreetMap',color='YlGn'):
         base_map = 'OpenStreetMap' if base_map not in self.map_base_option else base_map
         m = folium.Map(location=self.geo_handler.get_center_point(), zoom_start=self.geo_handler.get_zoom_start(),width='100%', height='100%',tiles=base_map)
-
+ 
         if isinstance(self.dataset,pd.DataFrame) and features:
             final_data = self.create_filtered_data_map(features,agg,year_range)
             #new_layer = folium.FeatureGroup(name='Layer '+str(len(self.map_layers)), overlay=False)
@@ -674,7 +674,7 @@ class map_dashboard:
         dataset_preprocessor = data_handler(data_value,file_name=data_filename)
         self.dataset = dataset_preprocessor.get_data()
 
-        self.add_main_tab(pn.widgets.Tabulator(self.dataset,name='Dataset'))
+        self.add_main_tab(pn.pane.DataFrame(self.dataset,name='Dataset',max_width=1100,max_rows=50))
         self.next_choose_geo.disabled = False
         self.loading.visible = False
 
