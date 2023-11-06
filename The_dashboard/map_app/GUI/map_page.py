@@ -674,7 +674,7 @@ class map_dashboard:
         dataset_preprocessor = data_handler(data_value,file_name=data_filename)
         self.dataset = dataset_preprocessor.get_data()
 
-        self.add_main_tab(pn.pane.DataFrame(self.dataset,name='Dataset',max_width=1100))
+        self.add_main_tab(pn.pane.DataFrame(self.dataset,name='Dataset',max_width=1100,max_rows=50))
         self.next_choose_geo.disabled = False
         self.loading.visible = False
 
