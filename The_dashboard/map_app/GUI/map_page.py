@@ -28,7 +28,7 @@ from .data_handler import *
 from .geo_data_handler import * 
 from .styles import *
 import copy
-
+from panel.layout.gridstack import GridStack
 import logging
 
 
@@ -36,6 +36,7 @@ import logging
 logging.basicConfig( level=logging.ERROR,force=True)
 
 pn.extension('floatpanel')
+pn.extension('gridstack')
 
 pn.extension('tabulator')
 pn.extension('plotly')
@@ -159,7 +160,7 @@ class map_dashboard:
         self.home_page_buttons_bar = pn.Row(self.create_experiment_button_page,self.create_example_button_page,align='start')
         intro_widged = pn.Row(pn.Column(info_text,info_text2,self.home_page_buttons_bar,margin=(20, 50)),logo_home, align='center',margin=(170, 10, 300, 10))
         
-        flow_diagram = pn.pane.SVG("/code/map_app/GUI/Static_data/flow_diagram_8.svg",align= 'center', height=360 ,margin=(100, 50)) 
+        flow_diagram = pn.pane.SVG("/code/map_app/GUI/Static_data/flow_diagram.svg",align= 'center', height=360 ,margin=(100, 50)) 
 
         
         #funders row
@@ -212,12 +213,13 @@ class map_dashboard:
         self.setting_charts_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='settings-2', align='center', icon_size='16px')
         self.map_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='map-2', align='center', icon_size='16px',value=True)
         self.radar_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-radar', align='center', icon_size='16px')
+        self.heatmap_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='grid-4x4', align='center', icon_size='16px')
         self.line_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-line', align='center', icon_size='16px')
         self.bar_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-bar', align='center', icon_size='16px')
         self.box_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-candle-filled', align='center', icon_size='16px')
         self.scatter_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='grain', align='center', icon_size='16px')
         self.pie_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-pie-2', align='center', icon_size='16px')
-        self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.scatter_show,self.pie_show,self.radar_show)
+        self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.scatter_show,self.pie_show,self.radar_show,self.heatmap_show)
         self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, height=3050,styles={ "background":"#FAFAFA"})
         
     def creating_map_settings_controls(self):
@@ -237,9 +239,10 @@ class map_dashboard:
     
     def creating_axes_controls(self):
         self.select_value_column_update = pn.widgets.Select(name='value_column (Y-axis)', options=[], design=self.design)
+        self.select_heatmap_fields = pn.widgets.MultiChoice(name='Heatmap columns', options=[],  design=self.design)
         self.select_chart_x_update = pn.widgets.Select(name='Charts Field (X-axis)', options=[], design=self.design)
         self.select_legend_update = pn.widgets.Select(name='Legend', options=[], design=self.design)
-        self.axes_settings_card = pn.Card(self.select_value_column_update,self.select_chart_x_update,self.select_legend_update, title="<h1 style='font-size: 15px;'>Axes settings</h1>", styles={"border": "none", "box-shadow": "none"})
+        self.axes_settings_card = pn.Card(self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields, title="<h1 style='font-size: 15px;'>Axes settings</h1>", styles={"border": "none", "box-shadow": "none"})
 
     def creating_dashboard_controls(self): 
         self.creating_charts_controls_toggle()
@@ -266,18 +269,45 @@ class map_dashboard:
         self.responsive_map = pn.pane.plot.Folium(empty_map, height=500, width=800, visible=False, name='Map', design=self.design)
         self.bar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Bar chart', width=800, height=375, design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.radar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Radar chart', height=350, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False,margin=2)
+        self.heatmap_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Heatmap chart', height=375, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False,margin=2)
         self.line_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='line chart', height=375, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.box_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Box chart', height=375, width=800,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.scatter_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Scatter chart', width=800, height=375,design=self.design, margin=2),sizing_mode='fixed',visible = False)
         self.pie_chart = pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Pie chart', height=350, width=800, design=self.design, margin=2,visible = False)
         self.dashboard_column = pn.Column(self.bar_chart,self.box_chart,self.scatter_chart,name='Dashboard', design=self.design)
-        self.responsive_row = pn.Column(self.responsive_map,self.bar_chart,self.line_chart,self.box_chart,self.scatter_chart,self.pie_chart,self.radar_chart, name = 'Dashboard',visible = False)
+        self.responsive_row = pn.Column(self.responsive_map,self.bar_chart,self.line_chart,self.box_chart,self.scatter_chart,self.pie_chart,self.radar_chart,self.heatmap_chart, name = 'Dashboard',visible = False)
         self.dashboard = pn.Row(self.charts_control,self.responsive_row,name='Dashboard')
         self.main_tabs = pn.Tabs( height=1100)
+    
+    def test_gridpanel(self,objects):
+        gstack = GridStack(sizing_mode='stretch_both', min_height=2000,mode ='error',ncols=5,nrows=15)
+        count = 0
+        gstack[ count:count+3 , 0: 3] = objects[0]
+        count = 4
+        for object in objects[1:]:
+            gstack[ count , 0: 3] = object
+            count+=1
+        return gstack
+
+    def create_example_videos_page(self):
+
+        #close_button_row = pn.Row(pn.widgets.Toggle(button_type='light', button_style='solid', icon='square-x', align=('end','center'), icon_size='16px',value=True))
+        video = pn.pane.Video('/code/map_app/GUI/Static_data/lamba_video_2.mp4', name = 'example', width=900, align = 'center', loop=False, muted = True,margin=(180, 10))
+    
+
+        self.example_page =  pn.Column(
+            video,
+            sizing_mode='stretch_width', visible = False
+        )
+
+
+        
+        #self.example_page = pn.Column(close_button_row,video,styles={ "background":"#000000"},visible=False,sizing_mode='stretch_both')
+
     def create_general_widgets(self):
         self.loading = pn.indicators.LoadingSpinner(value=True, size=20, name='Loading...', visible=False, design=self.design)
 
-    def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart,radar_chart):
+    def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart,radar_chart,heatmap_chart):
         self.bar_chart.clear()
         self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart',width=800, height=375,design=self.design, margin=2))
         self.box_chart.clear()
@@ -288,8 +318,9 @@ class map_dashboard:
         self.line_chart.append(pn.pane.Plotly(line_chart,name='Scatter chart',width=800, height=375,design=self.design, margin=2))
         self.radar_chart.clear()
         self.radar_chart.append(pn.pane.Plotly(radar_chart,name='Radar chart',width=800, height=350,design=self.design, margin=2))
-
-
+        self.heatmap_chart.clear()
+        self.heatmap_chart.append(pn.pane.Plotly(heatmap_chart,name='Heatmap chart',width=800, height=375,design=self.design, margin=2))
+        
 
     def create_widgets(self):
         #Creating widget columns for the control sidebar
@@ -310,6 +341,8 @@ class map_dashboard:
         #title_bar
         self.creating_titlebar_buttons()
 
+
+        self.create_example_videos_page()
         # Highlevel widgets
         self.controls = pn.WidgetBox(self.upload_dataset_component, self.choose_geo_component, 
                                      self.column_field_selection_compoent, self.column_controls_compoent,
@@ -349,11 +382,13 @@ class map_dashboard:
         columns = list(self.dataset.columns)
         columns_none = columns.copy()
         columns_none.append('None')
-        
+        numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
+
         self.select_value_column_update.options = columns
         self.select_chart_x_update.options = columns
         self.select_legend_update.options = columns
         self.select_tooltip.options = columns
+        self.select_heatmap_fields.options = numric_columns
 
         self.select_chart_x_update.value = self.chart_column
         self.select_value_column_update.value = self.value_column
@@ -378,7 +413,7 @@ class map_dashboard:
         columns = list(self.dataset.columns)
         columns_none = columns.copy()
         columns_none.append('None')
-        numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
+        #numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
         if not self.skip_map_flag:
             geo_fields = self.geo_handler.get_all_fields()
             value_geo_field = 'GEOID' if 'GEOID' in geo_fields else geo_fields[0]
@@ -424,19 +459,30 @@ class map_dashboard:
             self.home_page_component.visible = True
         self.about_page_component.visible = False
         self.menu_button.disabled = False
+        self.example_page.visible= False
     def show_about_page(self):
         self.map_area.visible = False
         self.controls.visible = False
         self.home_page_component.visible = False
         self.about_page_component.visible = True
         self.menu_button.disabled = True
+        self.example_page.visible= False
     def show_home_page(self):
         self.map_area.visible = False
         self.controls.visible = False 
         self.about_page_component.visible = False
         self.home_page_component.visible = True
         self.menu_button.disabled = False
-    
+        self.example_page.visible= False
+    def show_video_example(self,event):
+        self.example_page.visible= True
+        self.about_page_component.visible = False
+        self.home_page_component.visible = False
+        self.map_area.visible = False
+        self.controls.visible = False
+        self.menu_button.visible = False
+        self.home_page_active = False
+        
     def create_filtered_data_chart(self,features=None,agg=None,year_range=(1997, 2017)):
         if isinstance(self.dataset,pd.DataFrame):
             data_feature_filter = self.dataset.copy()
@@ -449,28 +495,24 @@ class map_dashboard:
                 data_feature_filter=data_feature_filter[(data_feature_filter[self.time_column]>=year_range[0])&(data_feature_filter[self.time_column]<=year_range[1])]
 
             data_feature_filter = data_feature_filter.astype({self.chart_column:'string'})
-            #print(self.chart_column,self.legend_column,self.value_column,(not self.legend_column or self.legend_column == self.chart_column) )
             if not self.legend_column or self.legend_column == self.chart_column:
                 final_data = data_feature_filter.groupby([self.chart_column])[self.value_column].agg(agg).reset_index()
             else:
                 final_data = data_feature_filter.groupby([self.chart_column,self.legend_column])[self.value_column].agg(agg).reset_index()
-            return final_data,data_feature_filter#[[self.chart_column,self.legend_column,self.value_column]]
-        return None,None
-    '''
-    def create_bar_chart(self,features=None,agg=None,year_range=(1997, 2017)):
-        fig = None
-        filtered_data = self.create_filtered_data_chart(features,agg,year_range)
-        if isinstance(filtered_data,pd.DataFrame):
-            fig = px.bar(filtered_data, x=self.chart_column, y=self.value_column)
-            fig.layout.autosize = True
-        return fig
-    '''
+            if len(self.select_heatmap_fields.value)>0:
+                final_data_heatmap = data_feature_filter.groupby(self.chart_column).agg({feature:agg for feature in self.select_heatmap_fields.value})
+            else:
+                final_data_heatmap = None
+
+            return final_data,data_feature_filter,final_data_heatmap
+        return None,None,None
+
     def create_charts(self,features=None,agg=None,year_range=(1997, 2017)):
         fig_bar = None
         fig_pie = None
         fig_scatter = None
 
-        filtered_data,row_filtered_data = self.create_filtered_data_chart(features,agg,year_range)
+        filtered_data,row_filtered_data,filtered_data_heatmap = self.create_filtered_data_chart(features,agg,year_range)
         if isinstance(filtered_data,pd.DataFrame):
             color_column = None if self.chart_column == self.legend_column else self.legend_column
             fig_bar = px.histogram(filtered_data, x=self.chart_column, y=self.value_column, color=color_column,barmode="group", template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
@@ -479,18 +521,22 @@ class map_dashboard:
             fig_line = px.line(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
             fig_box = px.box(row_filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
             fig_radar = px.line_polar(filtered_data, theta=self.chart_column, r=self.value_column, color=color_column, line_close=True, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=20, b=20),)
-
+            if  isinstance(filtered_data_heatmap,pd.DataFrame):
+                fig_heatmap = px.imshow(filtered_data_heatmap,labels=dict(color="Value"),x=filtered_data_heatmap.columns,y=filtered_data_heatmap.index, text_auto=True, aspect="auto", template="plotly_white").update_layout(margin=dict(l=20, r=20, t=20, b=20),)
+            else:
+                fig_heatmap = go.Figure().update_layout(template="plotly_white")
             fig_bar.layout.autosize = True
             fig_line.layout.autosize = True
             fig_pie.layout.autosize = True
             fig_box.layout.autosize = True
             fig_scatter.layout.autosize = True
             fig_radar.layout.autosize = True
+            fig_heatmap.layout.autosize = True
 
-        #self.bar_chart.object = fig_bar
+
         self.pie_chart.object = fig_pie
         #self.scatter_chart.object = fig_scatter
-        self.plotly_charts(fig_bar,fig_scatter,fig_box,fig_line,fig_radar)
+        self.plotly_charts(fig_bar,fig_scatter,fig_box,fig_line,fig_radar,fig_heatmap)
         #return fig_bar,fig_pie
     
     
@@ -674,7 +720,7 @@ class map_dashboard:
         dataset_preprocessor = data_handler(data_value,file_name=data_filename)
         self.dataset = dataset_preprocessor.get_data()
 
-        self.add_main_tab(pn.pane.DataFrame(self.dataset,name='Dataset',max_width=1100,max_rows=50))
+        self.add_main_tab(pn.pane.DataFrame(self.dataset,name='Dataset',max_width=1100,max_rows=20))
         self.next_choose_geo.disabled = False
         self.loading.visible = False
 
@@ -766,7 +812,7 @@ class map_dashboard:
         final_change = 0
         temp_controls_latest_values = {}
         map_values = ['transparency_map_range','select_color_map','select_base_map','select_tooltip']
-        chart_values = ['select_legend_update' , 'select_chart_x_update' ]
+        chart_values = ['select_legend_update' , 'select_chart_x_update','select_heatmap_fields' ]
         all_values = ['agg_buttons' , 'year_range', 'select_value_column_update']
         
         temp_controls_latest_values['agg_buttons'] = self.agg_buttons.value
@@ -778,6 +824,8 @@ class map_dashboard:
         temp_controls_latest_values['select_tooltip'] = self.select_tooltip.value
         temp_controls_latest_values['select_chart_x_update'] = self.select_chart_x_update.value
         temp_controls_latest_values['select_legend_update'] = self.select_legend_update.value
+        temp_controls_latest_values['select_heatmap_fields'] = self.select_heatmap_fields.value
+
         temp_controls_latest_values['filters_values'] = filters_values
         
         if len(self.controls_latest_values) >0:
@@ -799,7 +847,12 @@ class map_dashboard:
         self.controls_latest_values = temp_controls_latest_values
         #print('final_change' , final_change)
         return final_change
-    
+    def check_heatmap_selections(self):
+        if len(self.select_heatmap_fields.value)>0:
+            self.heatmap_show.disabled = False
+        else:
+            self.heatmap_show.disabled = True
+            self.heatmap_show.value = False
     def map_update(self,event):
         new_features = self.get_filters_values()
         change_type = 2
@@ -833,6 +886,9 @@ class map_dashboard:
         
         else:
             self.create_charts(new_features,agg,year_range_value)
+        self.check_heatmap_selections()
+        #grid_test = self.test_gridpanel(self.responsive_row.objects)
+        #self.add_main_tab(grid_test)
         '''
         self.responsive_map.object= thread1.result
         if self.main_tabs.active != 2:
@@ -869,6 +925,8 @@ class map_dashboard:
         self.line_chart.visible=self.line_show.value
     def show_radar_chart(self,event):
         self.radar_chart.visible = self.radar_show.value
+    def show_heatmap_chart(self,event):
+        self.heatmap_chart.visible = self.heatmap_show.value
 ##########################################################################################
     def bend_components_actions(self):
         self.geojson_input.param.watch(self.geojson_input_handler,'value')
@@ -886,6 +944,8 @@ class map_dashboard:
         self.create_experiment_button_page.param.watch(self.show_experiment_page,'value')
         self.skip_map_button.param.watch(self.disable_map,'value')
         self.map_show.param.watch(self.show_map_chart,'value') 
+        self.create_example_button.param.watch(self.show_video_example,'value') 
+        self.create_example_button_page.param.watch(self.show_video_example,'value') 
         #self.radar_show.param.watch(self.show_control_side_bar,'value') 
         self.line_show.param.watch(self.show_line_chart,'value') 
         self.bar_show.param.watch(self.show_bar_chart,'value') 
@@ -893,12 +953,12 @@ class map_dashboard:
         self.scatter_show.param.watch(self.show_scatter_chart,'value') 
         self.pie_show.param.watch(self.show_pie_chart,'value') 
         self.radar_show.param.watch(self.show_radar_chart,'value')
-
+        self.heatmap_show.param.watch(self.show_heatmap_chart,'value')
     def create_template(self):
         self.bend_components_actions()
 
         title = pn.pane.Markdown("", styles={"font-size": "18px", "font-weight": "bold", "color":"White"}, sizing_mode="stretch_width") 
-        logo = pn.pane.SVG("/code/map_app/GUI/Static_data/test9.svg",align=('end', 'end'), height=60,margin=1) 
+        logo = pn.pane.SVG("/code/map_app/GUI/Static_data/lamba_logo.svg",align=('end', 'end'), height=60,margin=1) 
         title_bar = pn.Row(self.menu_button,
                         logo,
                         title, 
@@ -911,6 +971,7 @@ class map_dashboard:
             title_bar,
             self.home_page_component,
             self.about_page_component,
+            self.example_page,
             pn.Row(
                 self.controls,
                 self.map_area,

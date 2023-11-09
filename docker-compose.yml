@@ -1,0 +1,19 @@
+version: "3.7"
+services:
+  apis:
+    build:
+      context: The_endpoints
+      dockerfile: Dockerfile
+    ports:
+      - "7000:7000"
+    depends_on:
+      - dashboard
+    environment:
+      - dashboard_url=http://127.0.0.1:5000
+
+  dashboard:
+    build:
+      context: The_dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
