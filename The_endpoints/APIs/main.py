@@ -1,8 +1,6 @@
 from bokeh.embed import server_document
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from starlette.responses import HTMLResponse
-import user_agent
 import os
 
 app = FastAPI()
