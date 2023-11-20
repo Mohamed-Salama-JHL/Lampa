@@ -224,7 +224,7 @@ class map_dashboard:
     def creating_general_controls(self):
         self.final_sentence = pn.pane.Markdown('##### **Step 4:** Play with the dashboard.<br />', styles={"font-size": "10px"})
         self.agg_buttons = pn.widgets.ToggleGroup(name='Aggregation type', value='sum', options=['sum', 'min' , 'max' , 'mean'], behavior="radio",  design=self.design)
-        self.year_range = pn.widgets.IntRangeSlider(name='Year',start=1997, end=2017, value=(1997, 2017), step=5, styles=custom_style, stylesheets=[stylesheet], design=self.design, visible=False)
+        self.year_range = pn.widgets.IntRangeSlider(name='Year',start=1997, end=2017, value=(1997, 2017), step=1, styles=custom_style, stylesheets=[stylesheet], design=self.design, visible=False)
         self.update_map_button = pn.widgets.Button(name='Update Map', button_type='primary', design=self.design)
         self.reset_filters_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
         self.button_row = pn.Row(self.update_map_button,self.reset_filters_button, design=self.design)
@@ -279,12 +279,12 @@ class map_dashboard:
     def create_example_videos_page(self):
 
         #close_button_row = pn.Row(pn.widgets.Toggle(button_type='light', button_style='solid', icon='square-x', align=('end','center'), icon_size='16px',value=True))
-        video = pn.pane.Video('https://assets.holoviz.org/panel/samples/video_sample.mp4', width=640, loop=True)
+        video = pn.pane.HTML('<iframe width="800" height="450" src="https://www.youtube.com/embed/eTnIPsjxOP8?si=pGvxKf7XMlEFivyC" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>',align=('center','center'),margin=(180, 10))
     
 
         self.example_page =  pn.Column(
             video,
-            sizing_mode='stretch_width', visible = False
+            sizing_mode='stretch_width', visible = False,align='center'
         )
 
 
