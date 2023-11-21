@@ -211,7 +211,7 @@ class map_dashboard:
         self.box_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-candle-filled', align='center', icon_size='16px')
         self.scatter_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='grain', align='center', icon_size='16px')
         self.pie_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-pie-2', align='center', icon_size='16px')
-        self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.scatter_show,self.heatmap_show,self.pie_show,self.radar_show)
+        self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.scatter_show,self.pie_show,self.radar_show,self.heatmap_show)
         self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, height=3050,styles={ "background":"#FAFAFA"})
         
     def creating_map_settings_controls(self):
@@ -227,6 +227,7 @@ class map_dashboard:
         self.year_range = pn.widgets.IntRangeSlider(name='Year',start=1997, end=2017, value=(1997, 2017), step=1, styles=custom_style, stylesheets=[stylesheet], design=self.design, visible=False)
         self.update_map_button = pn.widgets.Button(name='Update Map', button_type='primary', design=self.design)
         self.reset_filters_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
+        self.save_layout_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
         self.button_row = pn.Row(self.update_map_button,self.reset_filters_button, design=self.design)
     
     def creating_axes_controls(self):
@@ -259,13 +260,13 @@ class map_dashboard:
     def create_main_area_widgets(self):
         empty_map = folium.Map(location=(41,-99), zoom_start=0,width='100%', height='100%')
         self.responsive_map = pn.pane.plot.Folium(empty_map, height=500, width=800, visible=False, name='Map', design=self.design)
-        self.bar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Bar chart',  design=self.design, margin=2))
-        self.radar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Radar chart', design=self.design, margin=2))
-        self.heatmap_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Heatmap chart', design=self.design, margin=2))
-        self.line_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='line chart', design=self.design, margin=2))
-        self.box_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Box chart', design=self.design, margin=2))
-        self.scatter_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Scatter chart', design=self.design, margin=2))
-        self.pie_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Pie chart',  design=self.design, margin=2))
+        self.bar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Bar chart',  design=self.design, margin=2),scroll=False)
+        self.radar_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Radar chart', design=self.design, margin=2),scroll=False)
+        self.heatmap_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Heatmap chart', design=self.design, margin=2),scroll=False)
+        self.line_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='line chart', design=self.design, margin=2),scroll=False)
+        self.box_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Box chart', design=self.design, margin=2),scroll=False)
+        self.scatter_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Scatter chart', design=self.design, margin=2),scroll=False)
+        self.pie_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Pie chart',  design=self.design, margin=2),scroll=False)
         self.responsive_row = self.get_grid_stack([self.responsive_map])
         #self.responsive_row = pn.Column(self.responsive_map,self.bar_chart,self.line_chart,self.box_chart,self.scatter_chart,self.pie_chart,self.radar_chart,self.heatmap_chart, name = 'Dashboard',visible = False)
         self.dashboard = pn.Row(self.charts_control,self.responsive_row,name='Dashboard')
@@ -275,7 +276,7 @@ class map_dashboard:
         self.grid_stack_handler = grid_stack(charts_dict)
         return self.grid_stack_handler.get_gridstack()
 
-
+  
     def create_example_videos_page(self):
 
         #close_button_row = pn.Row(pn.widgets.Toggle(button_type='light', button_style='solid', icon='square-x', align=('end','center'), icon_size='16px',value=True))
@@ -307,6 +308,29 @@ class map_dashboard:
         self.radar_chart.append(pn.pane.Plotly(radar_chart,name='Radar chart', design=self.design, margin=2))
         self.heatmap_chart.clear()
         self.heatmap_chart.append(pn.pane.Plotly(heatmap_chart,name='Heatmap chart', design=self.design, margin=2))
+        self.pie_chart.clear()
+        self.pie_chart.append(pn.pane.Plotly(pie_chart,name='Pie chart',  design=self.design, margin=2))
+
+    def refresh_charts(self):
+        bar_chart = self.bar_chart.objects[0]
+        self.bar_chart.clear()
+        self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart',  design=self.design, margin=2)) 
+        box_chart = self.box_chart.objects[0]
+        self.box_chart.clear()
+        self.box_chart.append(pn.pane.Plotly(box_chart,name='Box chart', design=self.design, margin=2))
+        scatter_chart = self.scatter_chart.objects[0]
+        self.scatter_chart.clear()
+        self.scatter_chart.append(pn.pane.Plotly(scatter_chart,name='Scatter chart', design=self.design, margin=2))
+        line_chart = self.line_chart.objects[0]
+        self.line_chart.clear()
+        self.line_chart.append(pn.pane.Plotly(line_chart,name='line chart', design=self.design, margin=2))
+        radar_chart = self.radar_chart.objects[0]
+        self.radar_chart.clear()
+        self.radar_chart.append(pn.pane.Plotly(radar_chart,name='Radar chart', design=self.design, margin=2))
+        heatmap_chart = self.heatmap_chart.objects[0]
+        self.heatmap_chart.clear()
+        self.heatmap_chart.append(pn.pane.Plotly(heatmap_chart,name='Heatmap chart', design=self.design, margin=2))
+        pie_chart = self.pie_chart.objects[0]
         self.pie_chart.clear()
         self.pie_chart.append(pn.pane.Plotly(pie_chart,name='Pie chart',  design=self.design, margin=2))
         
@@ -908,47 +932,55 @@ class map_dashboard:
             self.grid_stack_handler.add_chart(self.responsive_map)
         else:
             self.grid_stack_handler.remove_chart(self.responsive_map.name)
+        #self.refresh_charts()
     def show_bar_chart(self,event):
         if self.bar_show.value:
             self.grid_stack_handler.add_chart(self.bar_chart)
         else:
             self.grid_stack_handler.remove_chart(self.bar_chart.name)
+        #self.refresh_charts()
         #self.bar_chart.visible=self.bar_show.value
     def show_scatter_chart(self,event):
         if self.scatter_show.value:
             self.grid_stack_handler.add_chart(self.scatter_chart)
         else:
             self.grid_stack_handler.remove_chart(self.scatter_chart.name)
+        #self.refresh_charts()
         #self.scatter_chart.visible=self.scatter_show.value
     def show_box_chart(self,event):
         if self.box_show.value:
             self.grid_stack_handler.add_chart(self.box_chart)
         else:
             self.grid_stack_handler.remove_chart(self.box_chart.name)
+        #self.refresh_charts()
         #self.box_chart.visible=self.box_show.value
     def show_pie_chart(self,event):
         if self.pie_show.value:
             self.grid_stack_handler.add_chart(self.pie_chart)
         else:
             self.grid_stack_handler.remove_chart(self.pie_chart.name)
+        #self.refresh_charts()
         #self.pie_chart.visible=self.pie_show.value
     def show_line_chart(self,event):
         if self.line_show.value:
             self.grid_stack_handler.add_chart(self.line_chart)
         else:
             self.grid_stack_handler.remove_chart(self.line_chart.name)
+        #self.refresh_charts()
         #self.line_chart.visible=self.line_show.value
     def show_radar_chart(self,event):
         if self.radar_show.value:
             self.grid_stack_handler.add_chart(self.radar_chart)
         else:
             self.grid_stack_handler.remove_chart(self.radar_chart.name)
+        #self.refresh_charts()
         #self.radar_chart.visible = self.radar_show.value
     def show_heatmap_chart(self,event):
         if self.heatmap_show.value:
             self.grid_stack_handler.add_chart(self.heatmap_chart)
         else:
             self.grid_stack_handler.remove_chart(self.heatmap_chart.name)
+        #self.refresh_charts()
         #self.heatmap_chart.visible = self.heatmap_show.value
 ##########################################################################################
     def bend_components_actions(self):
