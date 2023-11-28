@@ -8,6 +8,8 @@ services:
       - "7000:7000"
     depends_on:
       - dashboard
+    environment:
+      - dashboard_url=http://127.0.0.1:5000
 
   dashboard:
     build:

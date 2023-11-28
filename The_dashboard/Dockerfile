@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.9
+FROM python:3.9-slim
 
 # Set the working directory in the container
 WORKDIR /code
@@ -15,6 +15,6 @@ COPY . .
 EXPOSE 5000
 # Run app.py when the container launches
 #CMD ["panel", "serve", "map_app/main.py", "--allow-websocket-origin=*"]
-CMD ["python", "/code/map_app/main.py"]
+CMD ["python","-W", "ignore", "/code/map_app/main.py"]
 
 
