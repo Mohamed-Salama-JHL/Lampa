@@ -5,6 +5,8 @@ import numpy as np
 from .helper_functions import *
 class geojson_handler:
     def __init__(self):
+        #C:/James Hutton/Syngenta project/Lampa/The_dashboard/map_app/GUI/geojsons
+        #self.folder_name = 'C:/James Hutton/Syngenta project/Lampa/The_dashboard/map_app/GUI/geojsons'
         self.folder_name = './map_app/GUI/geojsons'
         self.selected_map = None
         self.return_geojson= None
@@ -183,7 +185,7 @@ class geojson_handler:
         # Find the closest predefined zoom level for the given distance
         closest_zoom = min(zoom_levels.keys(), key=lambda x: abs(zoom_levels[x] - (actual_distance )))
 
-        print(actual_distance,closest_zoom)
+        #print(actual_distance,closest_zoom)
         return int(closest_zoom) -1
     
 
