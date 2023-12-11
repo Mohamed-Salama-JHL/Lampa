@@ -41,7 +41,7 @@ pn.extension(design='bootstrap', template='material' )
 class clustering_module:
     
     def __init__(self,dataset) -> None:
-        self.dataset = dataset.reset_index()
+        self.dataset = dataset#.reset_index()
         self.working_dataset = None
         self.output_dataset = None
         self.reduction_dataset = None
@@ -55,7 +55,7 @@ class clustering_module:
         return self.update_results_button
 
     def set_dataset(self,new_dataset):
-        new_dataset=new_dataset.reset_index()
+        #new_dataset=new_dataset.reset_index()
         self.dataset = new_dataset
     
     def get_page(self):
@@ -130,7 +130,7 @@ class clustering_module:
     def create_dataset_setting_component(self):
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
         self.select_clustering_columns = pn.widgets.MultiChoice(name= 'Clustering Columns' ,options=numric_columns)
-        self.select_datapoints_columns = pn.widgets.MultiChoice(name= 'Tooltip datapoints Columns' ,options=numric_columns)
+        self.select_datapoints_columns = pn.widgets.MultiChoice(name= 'Tooltip datapoints Columns' ,options=list(self.dataset.columns))
         self.check_normalization = pn.widgets.Switch(name='Normalization',margin = 0)
         norm_name = pn.widgets.StaticText(value='Normalization: ',margin = 0)
         self.data_settings_card = pn.Column(self.select_clustering_columns,self.select_datapoints_columns,pn.Column(norm_name,pn.widgets.Switch(name='Normalization')))#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
@@ -320,7 +320,7 @@ class clustering_module:
         except:
             pass
         return sio
-    '''
+
     def get_trigger_button(self):
         return self.update_results_button
     def get_cluster_column(self):
@@ -328,5 +328,4 @@ class clustering_module:
             return self.output_dataset['Cluster']
         except:
             return None
-    '''
             

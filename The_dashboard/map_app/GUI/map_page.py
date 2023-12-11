@@ -238,7 +238,6 @@ class map_dashboard:
         self.select_chart_x_update = pn.widgets.Select(name='Charts Field (X-axis)', options=[], design=self.design)
         self.select_legend_update = pn.widgets.Select(name='Legend', options=[], design=self.design)
         self.axes_settings_card = pn.Card(self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields, title="<h1 style='font-size: 15px;'>Axes settings</h1>", styles={"border": "none", "box-shadow": "none"})
-
     def creating_analysis_panel(self):
         self.clustering_show = pn.widgets.Toggle(button_type='primary', button_style='outline', align='center',name = 'Clustering' )
         self.regression_show = pn.widgets.Toggle(button_type='primary', button_style='outline', name='Regression', align='center')
@@ -920,15 +919,29 @@ class map_dashboard:
     def update_other_components(self):
         if self.clustering_module != None:
             self.clustering_module.set_dataset(self.curent_filter_data)
+    
+    def add_clustering_results(self,event):
+        #try:
+            clusters = self.clustering_module.get_cluster_column()
+            clusters = clusters.astype(int)
+            self.dataset['Clusters'] = clusters
+            self.select_value_column_update.options.append('Clusters')
+            self.select_heatmap_fields.options.append('Clusters')
+            #self.select_chart_x_update.options.append('Clusters')
+            #self.select_legend_update.options.append('Clusters')
+            self.axes_settings_card.clear()
+            print('test test clustering')
+            self.axes_settings_card.objects = [self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields]
 
     def clustering_module_handeling(self,event):
         if self.clustering_show.value:
             if self.clustering_module ==None:
-                self.test_pane = pn.Spacer(styles=dict(background='red'), width=100, height=100, name= '1')
                 self.clustering_module = clustering_module(self.curent_filter_data)
                 self.clustering_main_area = self.clustering_module.get_main_area()
                 self.clustering_controls = self.clustering_module.get_controls()
                 self.regular_controls.insert(1,self.clustering_controls)
+                self.clustering_trigger = self.clustering_module.get_trigger_button()
+                self.clustering_trigger.param.watch(self.add_clustering_results,'value')
             else:
                 self.clustering_main_area = self.clustering_module.get_main_area()
                 self.clustering_controls.visible=True
