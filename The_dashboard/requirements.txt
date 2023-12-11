@@ -12,3 +12,4 @@ jinja2==3.0.0
 markupsafe==2.0.0rc2
 dask==2023.7.0
 scikit-learn==1.3.2
+prince==0.13.0

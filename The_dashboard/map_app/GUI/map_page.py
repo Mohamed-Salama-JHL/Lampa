@@ -16,13 +16,14 @@ import plotly.express as px
 import plotly.graph_objs as go
 import threading
 from panel.theme import Native
-from .data_handler import *
-from .geo_data_handler import * 
-from .styles import *
 import copy
 from panel.layout.gridstack import GridStack
 import logging
 
+from .data_handler import *
+from .geo_data_handler import * 
+from .styles import *
+from .clustering_module import *
 from .gridstack_handler import grid_stack
 
 logging.basicConfig( level=logging.ERROR,force=True)
@@ -70,6 +71,7 @@ class map_dashboard:
         self.latest_overlap_mapping = 100
         self.control_column_filters_count = 0
         self.skip_map_flag = False
+        self.clustering_module = None
         self.create_widgets()
 
     def create_filters_columns(self,filters_features,add_controls=True):
@@ -237,14 +239,20 @@ class map_dashboard:
         self.select_legend_update = pn.widgets.Select(name='Legend', options=[], design=self.design)
         self.axes_settings_card = pn.Card(self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields, title="<h1 style='font-size: 15px;'>Axes settings</h1>", styles={"border": "none", "box-shadow": "none"})
 
+    def creating_analysis_panel(self):
+        self.clustering_show = pn.widgets.Toggle(button_type='primary', button_style='outline', align='center',name = 'Clustering' )
+        self.regression_show = pn.widgets.Toggle(button_type='primary', button_style='outline', name='Regression', align='center')
+        self.classifcation_show = pn.widgets.Toggle(button_type='primary', button_style='outline', name='Classifcation', align='center')
+        self.analysis_panel = pn.Row(self.clustering_show, self.regression_show, self.classifcation_show)
+    
     def creating_dashboard_controls(self): 
         self.creating_charts_controls_toggle()
         self.creating_map_settings_controls()
         self.creating_general_controls()
         self.creating_axes_controls()
+        self.creating_analysis_panel()
         
- 
-        self.regular_controls=pn.Column(self.map_settings_card,self.axes_settings_card, self.year_range,self.agg_buttons,name='controls')
+        self.regular_controls=pn.Column(self.analysis_panel,self.map_settings_card,self.axes_settings_card, self.year_range,self.agg_buttons,name='controls')
         self.controls_row = pn.Tabs(self.regular_controls,self.charts_control)
         self.column_controls_compoent = pn.Column(self.final_sentence,self.regular_controls, sizing_mode='stretch_height',visible=False)
         
@@ -279,7 +287,6 @@ class map_dashboard:
   
     def create_example_videos_page(self):
 
-        #close_button_row = pn.Row(pn.widgets.Toggle(button_type='light', button_style='solid', icon='square-x', align=('end','center'), icon_size='16px',value=True))
         video = pn.pane.HTML('<iframe width="800" height="450" src="https://www.youtube.com/embed/eTnIPsjxOP8?si=pGvxKf7XMlEFivyC" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>',align=('center','center'),margin=(180, 10))
     
 
@@ -287,10 +294,6 @@ class map_dashboard:
             video,
             sizing_mode='stretch_width', visible = False,align='center'
         )
-
-
-        
-        #self.example_page = pn.Column(close_button_row,video,styles={ "background":"#000000"},visible=False,sizing_mode='stretch_both')
 
     def create_general_widgets(self):
         self.loading = pn.indicators.LoadingSpinner(value=True, size=20, name='Loading...', visible=False, design=self.design)
@@ -371,6 +374,13 @@ class map_dashboard:
         self.main_tabs.append(obj)
         self.active_main_tab+=1
         self.main_tabs.active = self.active_main_tab
+        
+    def remove_main_tap(self,obj):
+        self.active_main_tab-=1
+        self.main_tabs.active = self.active_main_tab
+        self.main_tabs.remove(obj)
+
+        
 
     def update_widgets_map_create(self):
         
@@ -507,7 +517,7 @@ class map_dashboard:
                 data_feature_filter=data_feature_filter[data_feature_filter[feature].isin(features[feature])]
             if self.time_column: 
                 data_feature_filter=data_feature_filter[(data_feature_filter[self.time_column]>=year_range[0])&(data_feature_filter[self.time_column]<=year_range[1])]
-
+            data_feature_filter_row = data_feature_filter
             data_feature_filter = data_feature_filter.astype({self.chart_column:'string'})
             if not self.legend_column or self.legend_column == self.chart_column:
                 final_data = data_feature_filter.groupby([self.chart_column])[self.value_column].agg(agg).reset_index()
@@ -518,15 +528,15 @@ class map_dashboard:
             else:
                 final_data_heatmap = None
 
-            return final_data,data_feature_filter,final_data_heatmap
-        return None,None,None
+            return final_data,data_feature_filter,final_data_heatmap,data_feature_filter_row
+        return None,None,None,None
 
-    def create_charts(self,features=None,agg=None,year_range=(1997, 2017)):
+    def create_charts(self,filtered_data,row_filtered_data,filtered_data_heatmap):
         fig_bar = None
         fig_pie = None
         fig_scatter = None
 
-        filtered_data,row_filtered_data,filtered_data_heatmap = self.create_filtered_data_chart(features,agg,year_range)
+        
         if isinstance(filtered_data,pd.DataFrame):
             color_column = None if self.chart_column == self.legend_column else self.legend_column
             fig_bar = px.histogram(filtered_data, x=self.chart_column, y=self.value_column, color=color_column,barmode="group", template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
@@ -792,6 +802,7 @@ class map_dashboard:
                                             file_name=data_filename)
         
         self.dataset = dataset_preprocessor.get_data()
+        self.curent_filter_data = self.dataset
         self.location_column = dataset_preprocessor.get_location_column()
         self.time_column = dataset_preprocessor.get_time_column()
         self.value_column = dataset_preprocessor.get_value_column()
@@ -883,9 +894,12 @@ class map_dashboard:
         #Change charts only
         self.chart_column = self.select_chart_x_update.value
         self.legend_column = self.select_legend_update.value
+
+        filtered_data,row_filtered_data,filtered_data_heatmap,self.curent_filter_data = self.create_filtered_data_chart(new_features,agg,year_range_value)
+        self.update_other_components()
         if change_type == 0:
             thread1 = threading.Thread(target=self.create_map, args=(new_features,agg,year_range_value,transparency_level,base_map,map_coloring,))
-            thread2 = threading.Thread(target=self.create_charts, args=(new_features,agg,year_range_value,))
+            thread2 = threading.Thread(target=self.create_charts, args=(filtered_data,row_filtered_data,filtered_data_heatmap,))
 
             # Start both threads
             thread1.start()
@@ -899,34 +913,31 @@ class map_dashboard:
             self.create_map(new_features,agg,year_range_value,transparency_level,base_map,map_coloring)
         
         else:
-            self.create_charts(new_features,agg,year_range_value)
+            self.create_charts(filtered_data,row_filtered_data,filtered_data_heatmap)
         self.check_heatmap_selections()
-        #grid_test = self.test_gridpanel(self.responsive_row.objects)
-        #self.add_main_tab(grid_test)
-        '''
-        self.responsive_map.object= thread1.result
-        if self.main_tabs.active != 2:
-            fig = self.create_map(new_features,agg,year_range_value,transparency_level,base_map)
-            self.responsive_map.object=fig
-            bar_chart , pie_chart= self.create_charts(new_features,agg,year_range_value)
-            if bar_chart:
-                self.bar_chart.object = bar_chart
-            if pie_chart:
+        
 
-                self.pie_chart.object = pie_chart
+    def update_other_components(self):
+        if self.clustering_module != None:
+            self.clustering_module.set_dataset(self.curent_filter_data)
 
+    def clustering_module_handeling(self,event):
+        if self.clustering_show.value:
+            if self.clustering_module ==None:
+                self.test_pane = pn.Spacer(styles=dict(background='red'), width=100, height=100, name= '1')
+                self.clustering_module = clustering_module(self.curent_filter_data)
+                self.clustering_main_area = self.clustering_module.get_main_area()
+                self.clustering_controls = self.clustering_module.get_controls()
+                self.regular_controls.insert(1,self.clustering_controls)
+            else:
+                self.clustering_main_area = self.clustering_module.get_main_area()
+                self.clustering_controls.visible=True
+            self.add_main_tab(self.clustering_main_area)
+            self.grid_stack_handler.refresh_grid_stack()
         else:
-            bar_chart , pie_chart= self.create_charts(new_features,agg,year_range_value)
-            if bar_chart:
-                self.bar_chart.object = bar_chart
-            if pie_chart:
-
-                self.pie_chart.object = pie_chart
-            fig = self.create_map(new_features,agg,year_range_value,transparency_level,base_map)
-            self.responsive_map.object=fig
-        '''
-        #charts_dict = {'responsive_map':self.responsive_map,'bar_chart':self.bar_chart,'line_chart':self.line_chart,'box_chart':self.box_chart,'scatter_chart':self.scatter_chart,'heatmap_chart':self.heatmap_chart,'pie_chart':self.pie_chart,'radar_chart':self.radar_chart}
-
+            self.clustering_controls.visible=False
+            self.remove_main_tap(self.clustering_main_area)
+        
     def show_map_chart(self,event):
         if self.map_show.value:
             self.grid_stack_handler.add_chart(self.responsive_map)
@@ -1009,6 +1020,12 @@ class map_dashboard:
         self.pie_show.param.watch(self.show_pie_chart,'value') 
         self.radar_show.param.watch(self.show_radar_chart,'value')
         self.heatmap_show.param.watch(self.show_heatmap_chart,'value')
+
+
+
+        self.clustering_show.param.watch(self.clustering_module_handeling,'value')
+        #self.classifcation_show.param.watch(self.show_heatmap_chart,'value')
+        #self.regression_show.param.watch(self.show_heatmap_chart,'value')
     def create_template(self):
         self.bend_components_actions()
 
