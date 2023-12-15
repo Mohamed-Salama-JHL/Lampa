@@ -94,7 +94,7 @@ class clustering_module:
         self.clustering_controls = pn.Card(pn.Column(self.algo_settings_card,self.data_settings_card,self.controls_buttons_row,self.loading), title="<h1 style='font-size: 15px;'>Clustering</h1>", styles={"border": "none", "box-shadow": "none"})
     
     def get_grid_stack(self,chart_list):
-        self.grid_stack_handler = grid_stack(chart_list,min_width=950,min_height=2000,ncols=9,nrows = 15, name='Clustering')
+        self.grid_stack_handler = grid_stack(chart_list,min_width=950,min_height=2000,ncols=6,nrows = 15, name='Clustering')
         return self.grid_stack_handler.get_gridstack()
     
     def create_main_area(self):
@@ -140,7 +140,7 @@ class clustering_module:
         self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary')
         self.download_clustered_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_clustered_data_io), filename='Clustered_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
 
-        self.controls_buttons_row = pn.Column(pn.Row(self.run_clustering_button,self.update_results_button),self.download_clustered_data_button)
+        self.controls_buttons_row = pn.Column(pn.Row(self.run_clustering_button,self.update_results_button,sizing_mode='stretch_width', margin=(0, 30, 0, 30)),self.download_clustered_data_button,sizing_mode='stretch_width')
     
     def create_general_widgets(self):
         self.loading = pn.indicators.LoadingSpinner(value=True, size=20, name='Loading...', visible=False)

@@ -150,7 +150,7 @@ class map_dashboard:
                                      ,styles={'font-size': '19pt','color':'#676767'}) 
         
         self.create_experiment_button_page = pn.widgets.Button(name='Get Started', button_type='primary', design=self.design)
-        self.create_example_button_page = pn.widgets.Button(name='Watch Demo', button_type='primary', design=self.design,button_style='outline')
+        self.create_example_button_page = pn.widgets.Button(name='Demo', button_type='primary', design=self.design,button_style='outline')
         self.home_page_buttons_bar = pn.Row(self.create_experiment_button_page,self.create_example_button_page,align='start')
         intro_widged = pn.Row(pn.Column(info_text,info_text2,self.home_page_buttons_bar,margin=(20, 50)),logo_home, align='center',margin=(170, 10, 300, 10))
         
@@ -169,8 +169,8 @@ class map_dashboard:
             ,sizing_mode='stretch_width', visible = True)
         
     def uploading_dataset_components(self):
-        self.first_sentence = pn.pane.Markdown('##### **Step 1:** Upload a dataset.<br />', styles={"font-size": "10px"})
-        self.file_input = pn.widgets.FileInput(name= 'Upload dataset', accept='.csv,.xlsx', design=self.design)
+        self.first_sentence = pn.pane.Markdown('##### **Step 1:** Upload data.<br />', styles={"font-size": "10px"})
+        self.file_input = pn.widgets.FileInput(name= 'Upload data', accept='.csv,.xlsx', design=self.design)
         self.next_choose_geo = pn.widgets.Button(name='Next', button_type='primary', disabled= True, design=self.design)
         
         self.upload_dataset_component = pn.Column(self.first_sentence,self.file_input,self.next_choose_geo, visible=True)
@@ -180,7 +180,7 @@ class map_dashboard:
         geo_maps_names = list(self.geo_handler.get_maps_names())
         geo_maps_names.append('Upload Geojson')
         
-        self.second_sentence = pn.pane.Markdown('##### **Step 2:** Choose or Upload a GeoJson.<br />', styles={"font-size": "10px"})
+        self.second_sentence = pn.pane.Markdown('##### **Step 2:** Plot GeoJson.<br />', styles={"font-size": "10px"})
         self.select_geo = pn.widgets.Select(name='Select Map', options=geo_maps_names, design=self.design)
         self.next_map_button = pn.widgets.Button(name='Next', button_type='primary', disabled= True, design=self.design)
         self.skip_map_button = pn.widgets.Button(name='Skip', button_type='primary', disabled= False, design=self.design)
@@ -189,12 +189,12 @@ class map_dashboard:
         self.choose_geo_component = pn.Column(self.second_sentence,self.select_geo,self.geojson_input,self.button_row_map, visible=False)
 
     def choosing_columns_fields(self):
-        self.third_sentence = pn.pane.Markdown('##### **Step 3:** Choose the proper columns and fields.<br />', styles={"font-size": "10px"})
+        self.third_sentence = pn.pane.Markdown('##### **Step 3:** Settings.<br />', styles={"font-size": "10px"})
         self.select_filter_columns = pn.widgets.MultiChoice(name='Filter columns', options=[],  design=self.design)
         self.select_location_column = pn.widgets.Select(name='Location column', options=[], design=self.design)
         self.select_year_column = pn.widgets.Select(name='Time column', options=[], design=self.design)
         self.select_value_column = pn.widgets.Select(name='Initial value column (Y-axis)', options=[], design=self.design)
-        self.create_map_final_button = pn.widgets.Button(name='Create Map', button_type='primary', design=self.design)
+        self.create_map_final_button = pn.widgets.Button(name='Create Dashboard', button_type='primary', design=self.design)
         self.select_geo_field = pn.widgets.Select(name='Geo Mapping Field', options=[], design=self.design)
         self.select_chart_x = pn.widgets.Select(name='Initial charts column (X-axis)', options=[], design=self.design)
 
@@ -224,16 +224,16 @@ class map_dashboard:
         self.map_settings_card = pn.Card(self.select_base_map,self.select_color_map,self.transparency_map_range,self.select_tooltip, title="<h1 style='font-size: 15px;'>Map settings</h1>", styles={"border": "none", "box-shadow": "none"})
     
     def creating_general_controls(self):
-        self.final_sentence = pn.pane.Markdown('##### **Step 4:** Play with the dashboard.<br />', styles={"font-size": "10px"})
+        self.final_sentence = pn.pane.Markdown('##### **Step 4:** Visualizations.<br />', styles={"font-size": "10px"})
         self.agg_buttons = pn.widgets.ToggleGroup(name='Aggregation type', value='sum', options=['sum', 'min' , 'max' , 'mean'], behavior="radio",  design=self.design)
         self.year_range = pn.widgets.IntRangeSlider(name='Year',start=1997, end=2017, value=(1997, 2017), step=1, styles=custom_style, stylesheets=[stylesheet], design=self.design, visible=False)
-        self.update_map_button = pn.widgets.Button(name='Update Map', button_type='primary', design=self.design)
+        self.update_map_button = pn.widgets.Button(name='Update Dashboard', button_type='primary', design=self.design)
         self.reset_filters_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
         self.save_layout_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
         self.button_row = pn.Row(self.update_map_button,self.reset_filters_button, design=self.design)
     
     def creating_axes_controls(self):
-        self.select_value_column_update = pn.widgets.Select(name='value_column (Y-axis)', options=[], design=self.design)
+        self.select_value_column_update = pn.widgets.Select(name='Value column (Y-axis)', options=[], design=self.design)
         self.select_heatmap_fields = pn.widgets.MultiChoice(name='Heatmap columns', options=[],  design=self.design)
         self.select_chart_x_update = pn.widgets.Select(name='Charts Field (X-axis)', options=[], design=self.design)
         self.select_legend_update = pn.widgets.Select(name='Legend', options=[], design=self.design)
@@ -259,8 +259,8 @@ class map_dashboard:
         self.about_button = pn.widgets.Button(name="About", button_type="primary", icon ='alert-circle',align=('end','center'),margin = 0)
         self.home_button = pn.widgets.Button(name="Home", button_type="primary", icon ='home-2',align=('end','center'),margin = 0)
         self.menu_button = pn.widgets.Button(name="", button_type="primary", icon ='menu-2',align='center', icon_size= '24px',visible = False, margin = 3)
-        self.create_experiment_button = pn.widgets.Button(name='Create Experiment', button_type='primary',  align=('end','center'),icon ='lamp')
-        self.create_example_button = pn.widgets.Button(name='Watch Demo', button_type='primary',  align=('end','center'),icon ='device-tv',margin = 0)
+        self.create_experiment_button = pn.widgets.Button(name='Plot Data', button_type='primary',  align=('end','center'),icon ='lamp')
+        self.create_example_button = pn.widgets.Button(name='Demo', button_type='primary',  align=('end','center'),icon ='device-tv',margin = 0)
         self.titlebar_buttons = pn.Row(self.create_experiment_button,self.create_example_button,self.home_button,self.about_button,align=('end','center'),margin = 0)
     
 
