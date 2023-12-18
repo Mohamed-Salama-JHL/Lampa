@@ -12,7 +12,7 @@ import numpy as np
 from io import StringIO
 from urllib.request import urlopen
 import json
-from sklearn.cluster import KMeans,DBSCAN
+from sklearn.cluster import KMeans,DBSCAN,AgglomerativeClustering
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import plotly.express as px
@@ -45,7 +45,7 @@ class clustering_module:
         self.working_dataset = None
         self.output_dataset = None
         self.reduction_dataset = None
-        self.algorithms_list = ['k-means','DBscan']
+        self.algorithms_list = ['k-means','DBscan','Hierarchical Clustering']
         self.feature_reduction_algorithms_list = ['PCA','t-SNE']
         self.clustering_page = None
         self.actual_fig_flag = False
@@ -154,6 +154,9 @@ class clustering_module:
             distortions = self.run_kmeans(number_clusters)
         elif self.select_algorithm.value=='DBscan':
             self.run_dbscan()
+        elif self.select_algorithm.value == 'Hierarchical Clustering':
+            number_clusters = int(self.select_num_clusters.get_value())
+            self.run_agglomerativeClustering(number_clusters)
         self.feature_reduction()
         self.create_charts_objects(distortions)
         self.end_clustering()
@@ -166,7 +169,8 @@ class clustering_module:
         self.run_clustering_button.disabled = False
     
     def dataset_preprocessing(self):
-        self.output_dataset = self.dataset[self.select_clustering_columns.value]
+        self.clustering_features_list = self.select_clustering_columns.value if len(self.select_clustering_columns.value)>=1 else self.select_clustering_columns.options
+        self.output_dataset = self.dataset[self.clustering_features_list]
         self.missing_values_handling()
         non_numeric_columns = self.output_dataset.select_dtypes(exclude=['number']).columns
         self.categorical_flag = False
@@ -198,6 +202,12 @@ class clustering_module:
             if k==clusters_num:
                 self.output_dataset.loc[:, 'Cluster'] = kmeans.fit_predict(self.working_dataset)
         return distortions 
+    
+    def run_agglomerativeClustering(self,clusters_num=None):
+
+        agg_clustering = AgglomerativeClustering(n_clusters=clusters_num) 
+        self.output_dataset.loc[:, 'Cluster'] = agg_clustering.fit_predict(self.working_dataset)
+
         
     def run_dbscan(self):
         eps = self.dbscan_eps.get_value() 
@@ -218,7 +228,7 @@ class clustering_module:
             self.run_tsne_reduction()
 
     def run_pca_reduction(self,number_components = 2):
-        self.reduction_dataset = self.output_dataset[self.select_clustering_columns.value]
+        self.reduction_dataset = self.output_dataset[self.clustering_features_list]
         pca = PCA(n_components=number_components)
         pca_result = pca.fit_transform(self.reduction_dataset)
         self.reduction_dataset = pd.DataFrame(data=pca_result, columns=['C1', 'C2'], index=self.output_dataset.index)
@@ -228,7 +238,7 @@ class clustering_module:
 
         
     def run_mca_reduction(self,number_components = 2):
-        self.reduction_dataset = self.output_dataset[self.select_clustering_columns.value]
+        self.reduction_dataset = self.output_dataset[self.clustering_features_list]
         mca = MCA(n_components=number_components)
         mca_result = mca.fit_transform(self.reduction_dataset)
         self.reduction_dataset = pd.DataFrame(data=mca_result, columns=['C1', 'C2'], index=self.output_dataset.index)
@@ -301,12 +311,20 @@ class clustering_module:
         self.dbscan_eps_min_samples.set_visible(True)  
         self.dbscan_eps.set_visible(True) 
         self.grid_stack_handler.remove_chart(self.elbow_chart.name)
+
+    def show_agg_settings(self):
+        self.select_num_clusters.set_visible(True)
+        self.dbscan_eps_min_samples.set_visible(False)  
+        self.dbscan_eps.set_visible(False) 
+        self.grid_stack_handler.remove_chart(self.elbow_chart.name)
     
     def algo_settings_show(self,event):
         if self.select_algorithm.value == 'k-means':
             self.show_kmeans_settings()
         elif self.select_algorithm.value == 'DBscan':
             self.show_dbscan_settings()
+        elif self.select_algorithm.value == 'Hierarchical Clustering':
+            self.show_agg_settings()
     
     def bend_components_actions(self):
         self.run_clustering_button.param.watch(self.run_clustering,'value')
