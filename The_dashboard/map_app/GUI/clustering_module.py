@@ -139,8 +139,8 @@ class clustering_module:
         self.run_clustering_button = pn.widgets.Button(name='Run Clustering', button_type='primary')
         self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary')
         self.download_clustered_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_clustered_data_io), filename='Clustered_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
-
-        self.controls_buttons_row = pn.Column(pn.Row(self.run_clustering_button,self.update_results_button,sizing_mode='stretch_width', margin=(0, 30, 0, 30)),self.download_clustered_data_button,sizing_mode='stretch_width')
+        self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px')     
+        self.controls_buttons_row = pn.Column(pn.Row(self.run_clustering_button,self.update_results_button,self.freeze_dashboard,sizing_mode='stretch_width'),self.download_clustered_data_button,sizing_mode='stretch_width')
     
     def create_general_widgets(self):
         self.loading = pn.indicators.LoadingSpinner(value=True, size=20, name='Loading...', visible=False)
@@ -326,9 +326,14 @@ class clustering_module:
         elif self.select_algorithm.value == 'Hierarchical Clustering':
             self.show_agg_settings()
     
+    def freezing_dashboard(self,event):
+        dynamic_flag = not self.freeze_dashboard.value
+        self.grid_stack_handler.dynamic(dynamic_flag)
+
     def bend_components_actions(self):
         self.run_clustering_button.param.watch(self.run_clustering,'value')
         self.select_algorithm.param.watch(self.algo_settings_show,'value')
+        self.freeze_dashboard.param.watch(self.freezing_dashboard,'value')
 
     def get_clustered_data_io(self):
         sio = StringIO()

@@ -211,9 +211,11 @@ class map_dashboard:
         self.line_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-line', align='center', icon_size='16px')
         self.bar_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-bar', align='center', icon_size='16px')
         self.box_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-candle-filled', align='center', icon_size='16px')
+        self.violin_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='brand-drupal', align='center', icon_size='16px')        
         self.scatter_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='grain', align='center', icon_size='16px')
         self.pie_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-pie-2', align='center', icon_size='16px')
-        self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.scatter_show,self.pie_show,self.radar_show,self.heatmap_show)
+
+        self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.violin_show,self.scatter_show,self.pie_show,self.radar_show,self.heatmap_show)
         self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, height=3050,styles={ "background":"#FAFAFA"})
         
     def creating_map_settings_controls(self):
@@ -229,8 +231,10 @@ class map_dashboard:
         self.year_range = pn.widgets.IntRangeSlider(name='Year',start=1997, end=2017, value=(1997, 2017), step=1, styles=custom_style, stylesheets=[stylesheet], design=self.design, visible=False)
         self.update_map_button = pn.widgets.Button(name='Update Dashboard', button_type='primary', design=self.design)
         self.reset_filters_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
-        self.save_layout_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
-        self.button_row = pn.Row(self.update_map_button,self.reset_filters_button, design=self.design)
+        #self.save_layout_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
+        self.freeze_show = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px')
+
+        self.button_row = pn.Row(self.update_map_button,self.reset_filters_button,self.freeze_show, design=self.design)
     
     def creating_axes_controls(self):
         self.select_value_column_update = pn.widgets.Select(name='Value column (Y-axis)', options=[], design=self.design)
@@ -272,6 +276,7 @@ class map_dashboard:
         self.heatmap_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Heatmap chart', design=self.design, margin=2),scroll=False)
         self.line_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='line chart', design=self.design, margin=2),scroll=False)
         self.box_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Box chart', design=self.design, margin=2),scroll=False)
+        self.violin_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Violin chart', design=self.design, margin=2),scroll=False)
         self.scatter_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Scatter chart', design=self.design, margin=2),scroll=False)
         self.pie_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Pie chart',  design=self.design, margin=2),scroll=False)
         self.responsive_row = self.get_grid_stack([self.responsive_map])
@@ -297,11 +302,13 @@ class map_dashboard:
     def create_general_widgets(self):
         self.loading = pn.indicators.LoadingSpinner(value=True, size=20, name='Loading...', visible=False, design=self.design)
 
-    def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart,radar_chart,heatmap_chart,pie_chart):
+    def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart,radar_chart,heatmap_chart,pie_chart,violin_chart):
         self.bar_chart.clear()
         self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart',  design=self.design, margin=2)) 
         self.box_chart.clear()
         self.box_chart.append(pn.pane.Plotly(box_chart,name='Box chart', design=self.design, margin=2))
+        self.violin_chart.clear()
+        self.violin_chart.append(pn.pane.Plotly(violin_chart,name='Violin chart', design=self.design, margin=2))
         self.scatter_chart.clear()
         self.scatter_chart.append(pn.pane.Plotly(scatter_chart,name='Scatter chart', design=self.design, margin=2))
         self.line_chart.clear()
@@ -320,6 +327,9 @@ class map_dashboard:
         box_chart = self.box_chart.objects[0]
         self.box_chart.clear()
         self.box_chart.append(pn.pane.Plotly(box_chart,name='Box chart', design=self.design, margin=2))
+        violin_chart = self.violin_chart.objects[0]
+        self.violin_chart.clear()
+        self.violin_chart.append(pn.pane.Plotly(violin_chart,name='Violin chart', design=self.design, margin=2))
         scatter_chart = self.scatter_chart.objects[0]
         self.scatter_chart.clear()
         self.scatter_chart.append(pn.pane.Plotly(scatter_chart,name='Scatter chart', design=self.design, margin=2))
@@ -543,6 +553,7 @@ class map_dashboard:
             fig_scatter = px.scatter(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
             fig_line = px.line(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
             fig_box = px.box(row_filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
+            fig_violin = px.violin(row_filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
             fig_radar = px.line_polar(filtered_data, theta=self.chart_column, r=self.value_column, color=color_column, line_close=True, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=20, b=20),)
             if  isinstance(filtered_data_heatmap,pd.DataFrame):
                 fig_heatmap = px.imshow(filtered_data_heatmap,labels=dict(color="Value"),x=filtered_data_heatmap.columns,y=filtered_data_heatmap.index, text_auto=True, aspect="auto", template="plotly_white").update_layout(margin=dict(l=20, r=20, t=20, b=20),)
@@ -555,11 +566,11 @@ class map_dashboard:
             fig_scatter.layout.autosize = True
             fig_radar.layout.autosize = True
             fig_heatmap.layout.autosize = True
-
+            fig_violin.layout.autosize = True
 
         #self.pie_chart.object = fig_pie
         #self.scatter_chart.object = fig_scatter
-        self.plotly_charts(fig_bar,fig_scatter,fig_box,fig_line,fig_radar,fig_heatmap,fig_pie)
+        self.plotly_charts(fig_bar,fig_scatter,fig_box,fig_line,fig_radar,fig_heatmap,fig_pie,fig_violin)
         #return fig_bar,fig_pie
     
     
@@ -1006,6 +1017,16 @@ class map_dashboard:
             self.grid_stack_handler.remove_chart(self.heatmap_chart.name)
         #self.refresh_charts()
         #self.heatmap_chart.visible = self.heatmap_show.value
+
+    def show_violin_chart(self,event):
+        if self.violin_show.value:
+            self.grid_stack_handler.add_chart(self.violin_chart)
+        else:
+            self.grid_stack_handler.remove_chart(self.violin_chart.name)
+
+    def freeze_handler(self,event):
+        dynamic_flag = not self.freeze_show.value
+        self.grid_stack_handler.dynamic(dynamic_flag)
 ##########################################################################################
     def bend_components_actions(self):
         self.geojson_input.param.watch(self.geojson_input_handler,'value')
@@ -1033,8 +1054,9 @@ class map_dashboard:
         self.pie_show.param.watch(self.show_pie_chart,'value') 
         self.radar_show.param.watch(self.show_radar_chart,'value')
         self.heatmap_show.param.watch(self.show_heatmap_chart,'value')
-
-
+        self.violin_show.param.watch(self.show_violin_chart,'value')
+        
+        self.freeze_show.param.watch(self.freeze_handler,'value')
 
         self.clustering_show.param.watch(self.clustering_module_handeling,'value')
         #self.classifcation_show.param.watch(self.show_heatmap_chart,'value')
