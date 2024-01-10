@@ -24,6 +24,7 @@ from .data_handler import *
 from .geo_data_handler import * 
 from .styles import *
 from .clustering_module import *
+from .regression_module import *
 from .gridstack_handler import grid_stack
 
 logging.basicConfig( level=logging.ERROR,force=True)
@@ -72,6 +73,7 @@ class map_dashboard:
         self.control_column_filters_count = 0
         self.skip_map_flag = False
         self.clustering_module = None
+        self.regression_module = None
         self.create_widgets()
 
     def create_filters_columns(self,filters_features,add_controls=True):
@@ -184,7 +186,7 @@ class map_dashboard:
         self.select_geo = pn.widgets.Select(name='Select Map', options=geo_maps_names, design=self.design)
         self.next_map_button = pn.widgets.Button(name='Next', button_type='primary', disabled= True, design=self.design)
         self.skip_map_button = pn.widgets.Button(name='Skip', button_type='primary', disabled= False, design=self.design)
-        self.geojson_input = pn.widgets.FileInput(name='Upload GeoJson', visible=False, accept='.geojson,.json', design=self.design)
+        self.geojson_input = pn.widgets.FileInput(name='Upload GeoJSON', visible=False, accept='.geojson,.json', design=self.design)
         self.button_row_map = pn.Row(self.next_map_button,self.skip_map_button, design=self.design)
         self.choose_geo_component = pn.Column(self.second_sentence,self.select_geo,self.geojson_input,self.button_row_map, visible=False)
 
@@ -214,8 +216,9 @@ class map_dashboard:
         self.violin_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='brand-drupal', align='center', icon_size='16px')        
         self.scatter_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='grain', align='center', icon_size='16px')
         self.pie_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-pie-2', align='center', icon_size='16px')
+        self.sankey_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-sankey', align='center', icon_size='16px')
 
-        self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.violin_show,self.scatter_show,self.pie_show,self.radar_show,self.heatmap_show)
+        self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.violin_show,self.scatter_show,self.pie_show,self.radar_show,self.heatmap_show,self.sankey_show)
         self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, height=3050,styles={ "background":"#FAFAFA"})
         
     def creating_map_settings_controls(self):
@@ -888,6 +891,9 @@ class map_dashboard:
         else:
             self.heatmap_show.disabled = True
             self.heatmap_show.value = False
+
+    def check_sankey_selections(self):
+        pass
     def map_update(self,event):
         new_features = self.get_filters_values()
         change_type = 2
@@ -930,19 +936,30 @@ class map_dashboard:
     def update_other_components(self):
         if self.clustering_module != None:
             self.clustering_module.set_dataset(self.curent_filter_data)
-    
+        if self.clustering_module != None:
+            self.clustering_module.set_dataset(self.curent_filter_data)
     def add_clustering_results(self,event):
         #try:
             clusters = self.clustering_module.get_cluster_column()
             clusters = clusters.astype(int)
             self.dataset['Clusters'] = clusters
-            self.select_value_column_update.options.append('Clusters')
-            self.select_heatmap_fields.options.append('Clusters')
-            #self.select_chart_x_update.options.append('Clusters')
-            #self.select_legend_update.options.append('Clusters')
-            self.axes_settings_card.clear()
-            print('test test clustering')
-            self.axes_settings_card.objects = [self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields]
+            if 'Clusters' not in self.select_value_column_update.options:
+                self.select_value_column_update.options.append('Clusters')
+                self.select_heatmap_fields.options.append('Clusters')
+                #self.select_chart_x_update.options.append('Clusters')
+                #self.select_legend_update.options.append('Clusters')
+                self.axes_settings_card.clear()
+                self.axes_settings_card.objects = [self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields]
+
+    def add_regression_results(self,event):
+        #try:
+            regression_results = self.regression_module.get_regression_column()
+            self.dataset['Regression'] = regression_results
+            if 'Regression' not in self.select_value_column_update.options:
+                self.select_value_column_update.options.append('Regression')
+                self.select_heatmap_fields.options.append('Regression')
+                self.axes_settings_card.clear()
+                self.axes_settings_card.objects = [self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields]
 
     def clustering_module_handeling(self,event):
         if self.clustering_show.value:
@@ -958,10 +975,32 @@ class map_dashboard:
                 self.clustering_controls.visible=True
             self.add_main_tab(self.clustering_main_area)
             self.grid_stack_handler.refresh_grid_stack()
+            if self.regression_module!=None:
+                self.regression_module.refresh_main_page()
         else:
             self.clustering_controls.visible=False
             self.remove_main_tap(self.clustering_main_area)
-        
+    
+    def regression_module_handeling(self,event):
+        if self.regression_show.value:
+            if self.regression_module ==None:
+                self.regression_module = regression_module(self.curent_filter_data)
+                self.regression_main_area = self.regression_module.get_main_area()
+                self.regression_controls = self.regression_module.get_controls()
+                self.regular_controls.insert(1,self.regression_controls)
+                self.regression_trigger = self.regression_module.get_trigger_button()
+                self.regression_trigger.param.watch(self.add_regression_results,'value')
+            else:
+                self.regression_main_area = self.regression_module.get_main_area()
+                self.regression_controls.visible=True
+            self.add_main_tab(self.regression_main_area)
+            self.grid_stack_handler.refresh_grid_stack()
+            if self.clustering_module!=None:
+                self.clustering_module.refresh_main_page()
+        else:
+            self.regression_controls.visible=False
+            self.remove_main_tap(self.regression_main_area)
+
     def show_map_chart(self,event):
         if self.map_show.value:
             self.grid_stack_handler.add_chart(self.responsive_map)
@@ -1060,7 +1099,7 @@ class map_dashboard:
 
         self.clustering_show.param.watch(self.clustering_module_handeling,'value')
         #self.classifcation_show.param.watch(self.show_heatmap_chart,'value')
-        #self.regression_show.param.watch(self.show_heatmap_chart,'value')
+        self.regression_show.param.watch(self.regression_module_handeling,'value')
     def create_template(self):
         self.bend_components_actions()
 

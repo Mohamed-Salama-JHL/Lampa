@@ -131,9 +131,9 @@ class clustering_module:
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
         self.select_clustering_columns = pn.widgets.MultiChoice(name= 'Clustering Columns' ,options=numric_columns)
         self.select_datapoints_columns = pn.widgets.MultiChoice(name= 'Tooltip datapoints Columns' ,options=list(self.dataset.columns))
-        self.check_normalization = pn.widgets.Switch(name='Normalization',margin = 0)
+        self.check_normalization = pn.widgets.Switch(name='Normalization',margin = 5)
         norm_name = pn.widgets.StaticText(value='Normalization: ',margin = 0)
-        self.data_settings_card = pn.Column(self.select_clustering_columns,self.select_datapoints_columns,pn.Column(norm_name,pn.widgets.Switch(name='Normalization')))#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
+        self.data_settings_card = pn.Column(self.select_clustering_columns,self.select_datapoints_columns,pn.Column(norm_name,self.check_normalization))#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
 
     def create_control_buttons(self):
         self.run_clustering_button = pn.widgets.Button(name='Run Clustering', button_type='primary')
@@ -337,7 +337,10 @@ class clustering_module:
 
     def get_clustered_data_io(self):
         sio = StringIO()
+        comment = f'This results are done by {self.select_algorithm.value}'
         try:
+            if comment:
+                sio.write("# " + comment + "\n")
             self.reduction_dataset.to_csv(sio)
             sio.seek(0)
         except:
@@ -351,4 +354,5 @@ class clustering_module:
             return self.output_dataset['Cluster']
         except:
             return None
-            
+    def refresh_main_page(self):
+        self.grid_stack_handler.refresh_grid_stack()
