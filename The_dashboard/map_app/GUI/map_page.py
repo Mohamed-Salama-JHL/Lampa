@@ -523,6 +523,7 @@ class map_dashboard:
         self.home_page_component.visible = True
         self.menu_button.disabled = False
         self.example_page.visible= False
+        self.create_experiment_button.visible = True
     def show_video_example(self,event):
         self.example_page.visible= True
         self.about_page_component.visible = False
@@ -697,11 +698,11 @@ class map_dashboard:
         #return m 
 
     def dynamic_filters(self,feature_changed):
-        print(feature_changed)
+        
         if len(self.filter_columns_widgets)<2:
             return None
         features = self.get_filters_values()
-        year_range=self.year_range.value
+        year_range=self.year_range.valuegit
         data_feature_filter = self.dataset.copy()
         change_flag = False
         empty_flag = True
@@ -729,7 +730,6 @@ class map_dashboard:
         for i in range(len(self.filter_columns_names)):
             
             if feature_changed== self.filter_columns_names[i] or len(self.filter_columns_widgets[i].value)!= 0:
-                print('test Iam here', feature_changed)
                 continue
             self.filter_columns_widgets[i].options = list(data_feature_filter[self.filter_columns_names[i]].unique())
 
@@ -765,7 +765,7 @@ class map_dashboard:
         self.show_about_page()
 
     def home_page_handler(self,event):
-        self.show_main_page()
+        self.show_home_page()
 
     def dataset_input_handler(self,event):
         self.loading.visible = True
