@@ -25,6 +25,7 @@ from .geo_data_handler import *
 from .styles import *
 from .clustering_module import *
 from .regression_module import *
+from .sankey_handler import *
 from .gridstack_handler import grid_stack
 
 logging.basicConfig( level=logging.ERROR,force=True)
@@ -74,6 +75,7 @@ class map_dashboard:
         self.skip_map_flag = False
         self.clustering_module = None
         self.regression_module = None
+        self.sankey_handler = SankeyPlotter()
         self.create_widgets()
 
     def create_filters_columns(self,filters_features,add_controls=True):
@@ -100,7 +102,6 @@ class map_dashboard:
     def show_filters_widgets(self):
         
         def change_options(event):
-
             self.dynamic_filters(event.obj.name)
         for w in range(len(self.filter_columns_widgets)):
             self.filter_columns_widgets[w].param.watch(change_options,'value')
@@ -244,7 +245,9 @@ class map_dashboard:
         self.select_heatmap_fields = pn.widgets.MultiChoice(name='Heatmap columns', options=[],  design=self.design)
         self.select_chart_x_update = pn.widgets.Select(name='Charts Field (X-axis)', options=[], design=self.design)
         self.select_legend_update = pn.widgets.Select(name='Legend', options=[], design=self.design)
-        self.axes_settings_card = pn.Card(self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields, title="<h1 style='font-size: 15px;'>Axes settings</h1>", styles={"border": "none", "box-shadow": "none"})
+        self.select_sankey_source = pn.widgets.Select(name='Sankey source', options=[], design=self.design)
+        self.select_sankey_target = pn.widgets.Select(name='Sankey target', options=[], design=self.design)
+        self.axes_settings_card = pn.Card(self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields, self.select_sankey_source,self.select_sankey_target, title="<h1 style='font-size: 15px;'>Axes settings</h1>", styles={"border": "none", "box-shadow": "none"})
     def creating_analysis_panel(self):
         self.clustering_show = pn.widgets.Toggle(button_type='primary', button_style='outline', align='center',name = 'Clustering' )
         self.regression_show = pn.widgets.Toggle(button_type='primary', button_style='outline', name='Regression', align='center')
@@ -282,6 +285,7 @@ class map_dashboard:
         self.violin_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Violin chart', design=self.design, margin=2),scroll=False)
         self.scatter_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Scatter chart', design=self.design, margin=2),scroll=False)
         self.pie_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Pie chart',  design=self.design, margin=2),scroll=False)
+        self.sankey_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Sankey chart', design=self.design, margin=2),scroll=False)
         self.responsive_row = self.get_grid_stack([self.responsive_map])
         #self.responsive_row = pn.Column(self.responsive_map,self.bar_chart,self.line_chart,self.box_chart,self.scatter_chart,self.pie_chart,self.radar_chart,self.heatmap_chart, name = 'Dashboard',visible = False)
         self.dashboard = pn.Row(self.charts_control,self.responsive_row,name='Dashboard')
@@ -305,7 +309,7 @@ class map_dashboard:
     def create_general_widgets(self):
         self.loading = pn.indicators.LoadingSpinner(value=True, size=20, name='Loading...', visible=False, design=self.design)
 
-    def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart,radar_chart,heatmap_chart,pie_chart,violin_chart):
+    def plotly_charts(self,bar_chart,scatter_chart,box_chart,line_chart,radar_chart,heatmap_chart,pie_chart,violin_chart,sankey_chart):
         self.bar_chart.clear()
         self.bar_chart.append(pn.pane.Plotly(bar_chart,name='Bar chart',  design=self.design, margin=2)) 
         self.box_chart.clear()
@@ -322,6 +326,8 @@ class map_dashboard:
         self.heatmap_chart.append(pn.pane.Plotly(heatmap_chart,name='Heatmap chart', design=self.design, margin=2))
         self.pie_chart.clear()
         self.pie_chart.append(pn.pane.Plotly(pie_chart,name='Pie chart',  design=self.design, margin=2))
+        self.sankey_chart.clear()
+        self.sankey_chart.append(pn.pane.Plotly(sankey_chart,name='Sankey chart',  design=self.design, margin=2))
 
     def refresh_charts(self):
         bar_chart = self.bar_chart.objects[0]
@@ -348,6 +354,9 @@ class map_dashboard:
         pie_chart = self.pie_chart.objects[0]
         self.pie_chart.clear()
         self.pie_chart.append(pn.pane.Plotly(pie_chart,name='Pie chart',  design=self.design, margin=2))
+        sankey_chart = self.sankey_chart.objects[0]
+        self.sankey_chart.clear()
+        self.sankey_chart.append(pn.pane.Plotly(sankey_chart,name='Sankey chart',  design=self.design, margin=2))
         
 
     def create_widgets(self):
@@ -424,10 +433,14 @@ class map_dashboard:
         self.select_legend_update.options = columns
         self.select_tooltip.options = columns
         self.select_heatmap_fields.options = numric_columns
+        self.select_sankey_target.options = columns_none
+        self.select_sankey_source.options = columns_none
 
         self.select_chart_x_update.value = self.chart_column
         self.select_value_column_update.value = self.value_column
         self.select_legend_update.value = self.chart_column
+        self.select_sankey_target.value = columns_none[-1]
+        self.select_sankey_source.value = columns_none[-1]
         
         #self.add_main_tab(self.dashboard_column)
         self.add_main_tab(self.dashboard)
@@ -543,12 +556,12 @@ class map_dashboard:
             return final_data,data_feature_filter,final_data_heatmap,data_feature_filter_row
         return None,None,None,None
 
+
     def create_charts(self,filtered_data,row_filtered_data,filtered_data_heatmap):
         fig_bar = None
         fig_pie = None
         fig_scatter = None
 
-        
         if isinstance(filtered_data,pd.DataFrame):
             color_column = None if self.chart_column == self.legend_column else self.legend_column
             fig_bar = px.histogram(filtered_data, x=self.chart_column, y=self.value_column, color=color_column,barmode="group", template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
@@ -562,6 +575,11 @@ class map_dashboard:
                 fig_heatmap = px.imshow(filtered_data_heatmap,labels=dict(color="Value"),x=filtered_data_heatmap.columns,y=filtered_data_heatmap.index, text_auto=True, aspect="auto", template="plotly_white").update_layout(margin=dict(l=20, r=20, t=20, b=20),)
             else:
                 fig_heatmap = go.Figure().update_layout(template="plotly_white")
+
+            if self.select_sankey_target.value == 'None' or self.select_sankey_source.value == 'None':
+                fig_sankey = go.Figure().update_layout(template="plotly_white")
+            else:
+                fig_sankey=self.sankey_handler.get_sankey_plot(self.curent_filter_data,self.select_sankey_source.value,self.select_sankey_target.value,self.value_column)
             fig_bar.layout.autosize = True
             fig_line.layout.autosize = True
             fig_pie.layout.autosize = True
@@ -570,10 +588,10 @@ class map_dashboard:
             fig_radar.layout.autosize = True
             fig_heatmap.layout.autosize = True
             fig_violin.layout.autosize = True
-
+            fig_sankey.layout.autosize = True
         #self.pie_chart.object = fig_pie
         #self.scatter_chart.object = fig_scatter
-        self.plotly_charts(fig_bar,fig_scatter,fig_box,fig_line,fig_radar,fig_heatmap,fig_pie,fig_violin)
+        self.plotly_charts(fig_bar,fig_scatter,fig_box,fig_line,fig_radar,fig_heatmap,fig_pie,fig_violin,fig_sankey)
         #return fig_bar,fig_pie
     
     
@@ -679,6 +697,7 @@ class map_dashboard:
         #return m 
 
     def dynamic_filters(self,feature_changed):
+        print(feature_changed)
         if len(self.filter_columns_widgets)<2:
             return None
         features = self.get_filters_values()
@@ -708,8 +727,9 @@ class map_dashboard:
             data_feature_filter=data_feature_filter[(data_feature_filter[self.time_column]>=year_range[0])&(data_feature_filter[self.time_column]<=year_range[1])]
         
         for i in range(len(self.filter_columns_names)):
-
-            if feature_changed== self.filter_columns_names[i]:
+            
+            if feature_changed== self.filter_columns_names[i] or len(self.filter_columns_widgets[i].value)!= 0:
+                print('test Iam here', feature_changed)
                 continue
             self.filter_columns_widgets[i].options = list(data_feature_filter[self.filter_columns_names[i]].unique())
 
@@ -835,6 +855,7 @@ class map_dashboard:
             
         
         self.create_filters_columns(self.filter_columns_names)
+        
         if not self.skip_map_flag:
             self.geo_data = self.geo_handler.get_single_geojson(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
             
@@ -850,9 +871,9 @@ class map_dashboard:
         final_change = 0
         temp_controls_latest_values = {}
         map_values = ['transparency_map_range','select_color_map','select_base_map','select_tooltip']
-        chart_values = ['select_legend_update' , 'select_chart_x_update','select_heatmap_fields' ]
+        chart_values = ['select_legend_update' , 'select_chart_x_update','select_heatmap_fields','select_sankey_source','select_sankey_target' ]
         all_values = ['agg_buttons' , 'year_range', 'select_value_column_update']
-        
+
         temp_controls_latest_values['agg_buttons'] = self.agg_buttons.value
         temp_controls_latest_values['year_range'] = self.year_range.value
         temp_controls_latest_values['select_value_column_update'] = self.select_value_column_update.value
@@ -863,6 +884,8 @@ class map_dashboard:
         temp_controls_latest_values['select_chart_x_update'] = self.select_chart_x_update.value
         temp_controls_latest_values['select_legend_update'] = self.select_legend_update.value
         temp_controls_latest_values['select_heatmap_fields'] = self.select_heatmap_fields.value
+        temp_controls_latest_values['select_sankey_source'] = self.select_sankey_source.value
+        temp_controls_latest_values['select_sankey_target'] = self.select_sankey_target.value
 
         temp_controls_latest_values['filters_values'] = filters_values
         
@@ -893,7 +916,11 @@ class map_dashboard:
             self.heatmap_show.value = False
 
     def check_sankey_selections(self):
-        pass
+        if self.select_sankey_target.value == 'None' or self.select_sankey_source.value == 'None':
+            self.sankey_show.disabled=True
+            self.sankey_show.value = False
+        else:
+            self.sankey_show.disabled = False
     def map_update(self,event):
         new_features = self.get_filters_values()
         change_type = 2
@@ -931,7 +958,7 @@ class map_dashboard:
         else:
             self.create_charts(filtered_data,row_filtered_data,filtered_data_heatmap)
         self.check_heatmap_selections()
-        
+        self.check_sankey_selections()
 
     def update_other_components(self):
         if self.clustering_module != None:
@@ -1057,6 +1084,12 @@ class map_dashboard:
         #self.refresh_charts()
         #self.heatmap_chart.visible = self.heatmap_show.value
 
+    def show_sankey_chart(self,event):
+        if self.sankey_show.value:
+            self.grid_stack_handler.add_chart(self.sankey_chart)
+        else:
+            self.grid_stack_handler.remove_chart(self.sankey_chart.name)
+
     def show_violin_chart(self,event):
         if self.violin_show.value:
             self.grid_stack_handler.add_chart(self.violin_chart)
@@ -1094,7 +1127,7 @@ class map_dashboard:
         self.radar_show.param.watch(self.show_radar_chart,'value')
         self.heatmap_show.param.watch(self.show_heatmap_chart,'value')
         self.violin_show.param.watch(self.show_violin_chart,'value')
-        
+        self.sankey_show.param.watch(self.show_sankey_chart,'value')
         self.freeze_show.param.watch(self.freeze_handler,'value')
 
         self.clustering_show.param.watch(self.clustering_module_handeling,'value')
