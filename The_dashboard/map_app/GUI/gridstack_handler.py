@@ -83,4 +83,6 @@ class grid_stack:
         self.external_gstack.append(temp)
         self.gstack = temp 
 
-        
+    def dynamic(self,flag=True):
+        self.gstack.allow_drag = flag
+        self.gstack.allow_resize = flag
