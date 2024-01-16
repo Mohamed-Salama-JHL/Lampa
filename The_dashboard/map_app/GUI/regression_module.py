@@ -11,6 +11,7 @@ import numpy as np
 from io import StringIO
 from urllib.request import urlopen
 import json
+from panel.theme import Native
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
@@ -22,7 +23,7 @@ from sklearn.preprocessing import MinMaxScaler
 from .num_input import *
 from .gridstack_handler import grid_stack
 from .analysis_page_abstract import analysis_abstract
-
+from .data_handler import data_handler
 pd.options.mode.chained_assignment = None 
 logging.basicConfig( level=logging.ERROR,force=True)
 
@@ -116,7 +117,7 @@ class regression_module:
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
         self.select_regression_columns = pn.widgets.MultiChoice(name= 'regression Columns' ,options=numric_columns)
         self.select_regression_target = pn.widgets.Select(name= 'regression Target' ,options=numric_columns)
-        self.check_normalization = pn.widgets.Switch(name='Normalization',margin = 0)
+        self.check_normalization = pn.widgets.Switch(name='Normalization',margin = (0, 10, 10, 10))
         norm_name = pn.widgets.StaticText(value='Normalization: ',margin = 0)
         self.data_settings_card = pn.Column(self.select_regression_target,self.select_regression_columns,pn.Column(norm_name,self.check_normalization))#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
 
@@ -125,7 +126,8 @@ class regression_module:
         self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary')
         self.download_regression_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_regression_data_io), filename='regression_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
         self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px')     
-        self.controls_buttons_row = pn.Column(pn.Row(self.run_regression_button,self.update_results_button,self.freeze_dashboard,sizing_mode='stretch_width'),self.download_regression_data_button,sizing_mode='stretch_width')
+        self.test_data_input = pn.widgets.FileInput(name= 'Upload Testing', accept='.csv,.xlsx',design=Native,margin = (10, 25, 10, 25),visible=False)
+        self.controls_buttons_row = pn.Column(pn.Row(self.run_regression_button,self.update_results_button,self.freeze_dashboard,sizing_mode='stretch_width'),self.test_data_input,self.download_regression_data_button,sizing_mode='stretch_width')
     
     def create_general_widgets(self):
         self.loading = pn.indicators.LoadingSpinner(value=True, size=20, name='Loading...', visible=False)
@@ -249,6 +251,7 @@ class regression_module:
         self.run_regression_button.param.watch(self.run_regression,'value')
         self.select_algorithm.param.watch(self.algo_settings_show,'value')
         self.freeze_dashboard.param.watch(self.freezing_dashboard,'value')
+        #self.test_data_input.param.watch(self.test_input_handler,'value')
 
     def get_regression_data_io(self):
         sio = StringIO()
@@ -275,4 +278,21 @@ class regression_module:
         
     def refresh_main_page(self):
         self.grid_stack_handler.refresh_grid_stack()
-             
+
+
+    def test_data_handler(self,event):
+        self.data_handler = data_handler(raw_data=self.test_data_input.value,file_name=self.test_data_input.filename)
+        temp_testing_dataset = self.data_handler.get_data()
+        if self.validate_testing_dataset(temp_testing_dataset):
+            self.testing_dataset = temp_testing_dataset
+    
+    def validate_testing_dataset(self,dataset):
+        
+        for column in dataset.columns:
+            if column not in self.select_regression_columns or dataset[column].dtypes != self.dataset[column].dtypes:
+                return False
+        return True
+            
+    def process_testing_dataset(self):
+
+        pass

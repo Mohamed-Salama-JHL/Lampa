@@ -702,7 +702,7 @@ class map_dashboard:
         if len(self.filter_columns_widgets)<2:
             return None
         features = self.get_filters_values()
-        year_range=self.year_range.valuegit
+        year_range=self.year_range.value
         data_feature_filter = self.dataset.copy()
         change_flag = False
         empty_flag = True
