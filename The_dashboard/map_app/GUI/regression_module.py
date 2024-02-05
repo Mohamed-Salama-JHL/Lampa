@@ -45,6 +45,9 @@ class regression_module:
         self.regression_page = None
         self.actual_fig_flag = False
         self.main_page_created = False
+        self.scaler = None
+        self.model = None
+        self.testing_dataset =None
     
     def get_updated_dataset_button(self):
         return self.update_results_button
@@ -126,7 +129,7 @@ class regression_module:
         self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary')
         self.download_regression_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_regression_data_io), filename='regression_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
         self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px')     
-        self.test_data_input = pn.widgets.FileInput(name= 'Upload Testing', accept='.csv,.xlsx',design=Native,margin = (10, 25, 10, 25),visible=False)
+        self.test_data_input = pn.widgets.FileInput(name= 'Upload Testing', accept='.csv,.xlsx',design=Native,margin = (10, 25, 10, 25))
         self.controls_buttons_row = pn.Column(pn.Row(self.run_regression_button,self.update_results_button,self.freeze_dashboard,sizing_mode='stretch_width'),self.test_data_input,self.download_regression_data_button,sizing_mode='stretch_width')
     
     def create_general_widgets(self):
@@ -156,7 +159,7 @@ class regression_module:
         self.regression_all_features = [feature for feature in self.regression_features_list]
         self.regression_all_features.append(self.regression_target_feature)
         self.output_dataset = self.dataset[self.regression_all_features]
-        self.testing_dataset = self.output_dataset[self.output_dataset[self.regression_target_feature].isna()]
+        #self.testing_dataset = self.output_dataset[self.output_dataset[self.regression_target_feature].isna()]
         self.missing_values_handling()
         self.target_traing_series = self.output_dataset[self.regression_target_feature]
         self.output_dataset = self.output_dataset[self.regression_features_list]
@@ -180,33 +183,33 @@ class regression_module:
     #handle missing from feature the same as dataset and the opposite
     
     def normalize_dataset(self):
-        scaler = MinMaxScaler()
-        self.working_dataset = scaler.fit_transform(self.working_dataset)
+        self.scaler = MinMaxScaler()
+        self.working_dataset = self.scaler.fit_transform(self.working_dataset)
 
 
     def missing_values_handling(self):
         self.output_dataset.dropna(inplace=True)
 
     def run_lr(self):
-        model = LinearRegression()
-        model.fit(self.X_train, self.y_train)
-        y_pred = model.predict(self.X_test)
-        feature_importance = model.coef_
+        self.model = LinearRegression()
+        self.model.fit(self.X_train, self.y_train)
+        y_pred = self.model.predict(self.X_test)
+        feature_importance = self.model.coef_
         mae = mean_absolute_error(self.y_test, y_pred)
         mse = mean_squared_error(self.y_test, y_pred)
         rmse = np.sqrt(mse)
-        self.output_dataset.loc[:, 'Regression']=model.predict(self.working_dataset)
+        self.output_dataset.loc[:, 'Regression']=self.model.predict(self.working_dataset)
         return feature_importance,mae,mse,rmse
 
     def run_dt(self):
-        model = DecisionTreeRegressor(max_depth=self.select_max_depth.get_value())
-        model.fit(self.X_train, self.y_train)
-        y_pred = model.predict(self.X_test)
-        feature_importance = model.feature_importances_
+        self.model = DecisionTreeRegressor(max_depth=self.select_max_depth.get_value())
+        self.model.fit(self.X_train, self.y_train)
+        y_pred = self.model.predict(self.X_test)
+        feature_importance = self.model.feature_importances_
         mae = mean_absolute_error(self.y_test, y_pred)
         mse = mean_squared_error(self.y_test, y_pred)
         rmse = np.sqrt(mse)
-        self.output_dataset.loc[:, 'Regression']=model.predict(self.working_dataset)
+        self.output_dataset.loc[:, 'Regression']=self.model.predict(self.working_dataset)
         return feature_importance,mae,mse,rmse
 
     def create_charts_objects(self,feature_importance,mae,mse,rmse):
@@ -251,18 +254,26 @@ class regression_module:
         self.run_regression_button.param.watch(self.run_regression,'value')
         self.select_algorithm.param.watch(self.algo_settings_show,'value')
         self.freeze_dashboard.param.watch(self.freezing_dashboard,'value')
-        #self.test_data_input.param.watch(self.test_input_handler,'value')
+        self.test_data_input.param.watch(self.test_data_handler,'value')
 
     def get_regression_data_io(self):
         sio = StringIO()
         comment = f'This results are done by {self.select_algorithm.value}'
+        self.process_testing_dataset()
         try:
             if comment:
                 sio.write("# " + comment + "\n")
-            temp = self.output_dataset.copy()
-            temp[self.regression_target_feature] = self.target_traing_series
-            temp.to_csv(sio)
-            sio.seek(0)
+            
+            if self.process_testing_dataset():
+                temp = self.testing_output_dataset.copy()
+                temp.to_csv(sio)
+                sio.seek(0)
+            else:
+                temp = self.output_dataset.copy()
+                temp[self.regression_target_feature] = self.target_traing_series
+                temp.to_csv(sio)
+                sio.seek(0)
+        
         except:
             pass
         return sio
@@ -285,14 +296,33 @@ class regression_module:
         temp_testing_dataset = self.data_handler.get_data()
         if self.validate_testing_dataset(temp_testing_dataset):
             self.testing_dataset = temp_testing_dataset
-    
+            print('Iam here')
     def validate_testing_dataset(self,dataset):
-        
+        if isinstance(dataset, type(None)):
+            return False
         for column in dataset.columns:
-            if column not in self.select_regression_columns or dataset[column].dtypes != self.dataset[column].dtypes:
+            if column not in self.select_regression_columns.value or dataset[column].dtypes != self.dataset[column].dtypes:
                 return False
         return True
             
     def process_testing_dataset(self):
 
-        pass
+        if not isinstance(self.testing_dataset, pd.DataFrame) or self.model ==None or not self.validate_testing_dataset(self.testing_dataset):
+            print('not working',isinstance(self.testing_dataset, type(None)),self.model ==None, self.validate_testing_dataset(self.testing_dataset))
+            return False
+        self.testing_output_dataset = self.testing_dataset[self.regression_all_features]
+        self.testing_output_dataset.dropna(inplace=True)
+        non_numeric_columns = self.testing_output_dataset.select_dtypes(exclude=['number']).columns
+        self.categorical_flag = False
+        
+        if not non_numeric_columns.empty:
+            self.working_dataset = pd.get_dummies(self.testing_output_dataset, columns=non_numeric_columns)
+            self.categorical_flag = True
+        else:
+            self.testing_working_dataset = self.testing_output_dataset
+
+        if self.check_normalization.value:
+            self.testing_working_dataset = self.scaler.transform(self.testing_working_dataset)
+
+        self.testing_output_dataset.loc[:, 'Regression']=self.model.predict(self.testing_working_dataset)
+        return True

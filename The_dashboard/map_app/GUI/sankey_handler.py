@@ -13,22 +13,31 @@ class SankeyPlotter:
         self.target_column = target_column
         self.values_column = values_column
         self.dataset = dataset
+    
+    def preprocess_sankey_data(self,sankey_data):
+        unique_source_target = list(pd.unique(sankey_data[[self.source_column, self.target_column]].values.ravel('K')))
+        mapping_dict = {k: v for v, k in enumerate(unique_source_target)}
+        sankey_data[self.source_column] = sankey_data[self.source_column].map(mapping_dict)
+        sankey_data[self.target_column] = sankey_data[self.target_column].map(mapping_dict)
+        return unique_source_target,sankey_data
     def get_sankey_plot(self, dataset, source_column, target_column, values_column):
         self.set_data( dataset, source_column, target_column, values_column)
 
         sankey_data = self.dataset.groupby([self.source_column, self.target_column])[self.values_column].sum().reset_index()
 
+        unique_source_target,sankey_df = self.preprocess_sankey_data(sankey_data)
+        
         fig = go.Figure(data=[go.Sankey(
             node=dict(
                 pad=15,
                 thickness=20,
                 line=dict(color='black', width=0.5),
-                label=sankey_data[self.source_column].tolist() + sankey_data[self.target_column].tolist()
+                label=unique_source_target
             ),
             link=dict(
-                source=sankey_data[self.source_column].apply(lambda x: sankey_data[self.source_column].tolist().index(x)),
-                target=sankey_data[self.target_column].apply(lambda x: len(sankey_data[self.source_column].tolist()) + sankey_data[self.target_column].tolist().index(x)),
-                value=sankey_data[self.values_column]
+                source=sankey_df[self.source_column],
+                target=sankey_df[self.target_column],
+                value=sankey_df[self.values_column]
             )
         )])
 
