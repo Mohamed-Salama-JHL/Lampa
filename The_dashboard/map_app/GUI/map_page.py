@@ -27,7 +27,7 @@ from .clustering_module import *
 from .regression_module import *
 from .sankey_handler import *
 from .gridstack_handler import grid_stack
-
+from .classification_module import *
 logging.basicConfig( level=logging.ERROR,force=True)
 
 pn.extension('floatpanel')
@@ -75,6 +75,7 @@ class map_dashboard:
         self.skip_map_flag = False
         self.clustering_module = None
         self.regression_module = None
+        self.classification_module = None
         self.sankey_handler = SankeyPlotter()
         self.create_widgets()
 
@@ -251,8 +252,8 @@ class map_dashboard:
     def creating_analysis_panel(self):
         self.clustering_show = pn.widgets.Toggle(button_type='primary', button_style='outline', align='center',name = 'Clustering' )
         self.regression_show = pn.widgets.Toggle(button_type='primary', button_style='outline', name='Regression', align='center')
-        self.classifcation_show = pn.widgets.Toggle(button_type='primary', button_style='outline', name='Classifcation', align='center')
-        self.analysis_panel = pn.Row(self.clustering_show, self.regression_show, self.classifcation_show)
+        self.classification_show = pn.widgets.Toggle(button_type='primary', button_style='outline', name='Classification', align='center')
+        self.analysis_panel = pn.Row(self.clustering_show, self.regression_show, self.classification_show)
     
     def creating_dashboard_controls(self): 
         self.creating_charts_controls_toggle()
@@ -987,6 +988,16 @@ class map_dashboard:
                 self.select_heatmap_fields.options.append('Regression')
                 self.axes_settings_card.clear()
                 self.axes_settings_card.objects = [self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields]
+    
+    def add_classification_results(self,event):
+        #try:
+            classification_results = self.classification_module.get_regression_column()
+            self.dataset['Classification'] = classification_results
+            if 'Classification' not in self.select_value_column_update.options:
+                self.select_value_column_update.options.append('Classification')
+                self.select_heatmap_fields.options.append('Classification')
+                self.axes_settings_card.clear()
+                self.axes_settings_card.objects = [self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields]
 
     def clustering_module_handeling(self,event):
         if self.clustering_show.value:
@@ -1004,6 +1015,8 @@ class map_dashboard:
             self.grid_stack_handler.refresh_grid_stack()
             if self.regression_module!=None:
                 self.regression_module.refresh_main_page()
+            if self.classification_module!=None:
+                self.classification_module.refresh_main_page()
         else:
             self.clustering_controls.visible=False
             self.remove_main_tap(self.clustering_main_area)
@@ -1024,10 +1037,33 @@ class map_dashboard:
             self.grid_stack_handler.refresh_grid_stack()
             if self.clustering_module!=None:
                 self.clustering_module.refresh_main_page()
+            if self.classification_module!=None:
+                self.classification_module.refresh_main_page()
         else:
             self.regression_controls.visible=False
             self.remove_main_tap(self.regression_main_area)
-
+    
+    def classification_module_handeling(self,event):
+        if self.classification_show.value:
+            if self.classification_module ==None:
+                self.classification_module = classification_module(self.curent_filter_data)
+                self.classification_main_area = self.classification_module.get_main_area()
+                self.classification_controls = self.classification_module.get_controls()
+                self.regular_controls.insert(1,self.classification_controls)
+                self.classification_trigger = self.classification_module.get_trigger_button()
+                self.classification_trigger.param.watch(self.add_classification_results,'value')
+            else:
+                self.classification_main_area = self.classification_module.get_main_area()
+                self.classification_controls.visible=True
+            self.add_main_tab(self.classification_main_area)
+            self.grid_stack_handler.refresh_grid_stack()
+            if self.clustering_module!=None:
+                self.clustering_module.refresh_main_page()
+            if self.regression_module!=None:
+                self.regression_module.refresh_main_page()
+        else:
+            self.classification_controls.visible=False
+            self.remove_main_tap(self.classification_main_area)
     def show_map_chart(self,event):
         if self.map_show.value:
             self.grid_stack_handler.add_chart(self.responsive_map)
@@ -1131,7 +1167,7 @@ class map_dashboard:
         self.freeze_show.param.watch(self.freeze_handler,'value')
 
         self.clustering_show.param.watch(self.clustering_module_handeling,'value')
-        #self.classifcation_show.param.watch(self.show_heatmap_chart,'value')
+        self.classification_show.param.watch(self.classification_module_handeling,'value')
         self.regression_show.param.watch(self.regression_module_handeling,'value')
     def create_template(self):
         self.bend_components_actions()

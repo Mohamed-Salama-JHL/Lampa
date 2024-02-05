@@ -115,8 +115,9 @@ class classification_module:
     def create_algorithm_settings_component(self):
         self.select_algorithm = pn.widgets.Select(name='classification algorithms', options=self.algorithms_list, value ='Logistic classification' )
         self.select_max_depth = number_input(type='int',title='Max depth: ',tooltip_str='Max depth of the decision tree', start=1, end=10000, step=1, value=3,visible=False)
+        self.select_max_iteration = number_input(type='int',title='Max iteration: ',tooltip_str='Max iteration for logistic regression', start=100, end=100000, step=1, value=100,visible=True)
 
-        self.algo_settings_card = pn.Column(self.select_algorithm,self.select_max_depth.get_item())#, title="<h1 style='font-size: 15px;'>Algorithm settings</h1>", styles={"border": "none", "box-shadow": "none"}
+        self.algo_settings_card = pn.Column(self.select_algorithm,self.select_max_iteration.get_item(),self.select_max_depth.get_item())#, title="<h1 style='font-size: 15px;'>Algorithm settings</h1>", styles={"border": "none", "box-shadow": "none"}
 
     
     def create_dataset_setting_component(self):
@@ -128,10 +129,10 @@ class classification_module:
         self.data_settings_card = pn.Column(self.select_classification_target,self.select_classification_columns,pn.Column(norm_name,self.check_normalization))#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
 
     def create_control_buttons(self):
-        self.run_classification_button = pn.widgets.Button(name='Run classification', button_type='primary')
-        self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary')
+        self.run_classification_button = pn.widgets.Button(name='Run classification', button_type='primary',margin = (5, 3, 5, 15))
+        self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary',margin = (5, 3, 5, 3))
         self.download_classification_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_classification_data_io), filename='classification_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
-        self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px')     
+        self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px',margin = (5, 3, 5, 3))     
         self.test_data_input = pn.widgets.FileInput(name= 'Upload Testing', accept='.csv,.xlsx',design=Native,margin = (10, 25, 10, 25))
         self.controls_buttons_row = pn.Column(pn.Row(self.run_classification_button,self.update_results_button,self.freeze_dashboard,sizing_mode='stretch_width'),self.test_data_input,self.download_classification_data_button,sizing_mode='stretch_width')
     
@@ -195,15 +196,22 @@ class classification_module:
         self.output_dataset.dropna(inplace=True)
 
     def run_lr(self):
-        self.model = LogisticRegression()
-        self.model.fit(self.X_train, self.y_train)
-        y_pred = self.model.predict(self.X_test)
-        feature_importance = self.model.coef_
-        accuracy = accuracy_score(self.y_test, y_pred)
-        recall = recall_score(self.y_test, y_pred)
-        precision = precision_score(self.y_test, y_pred)
-        self.output_dataset.loc[:, 'classification']=self.model.predict(self.working_dataset)
-        return feature_importance,accuracy,precision,recall
+        self.model = LogisticRegression(multi_class='auto',max_iter=self.select_max_iteration.get_value())
+        try:
+            self.model.fit(self.X_train, self.y_train)
+            y_pred = self.model.predict(self.X_test)
+            feature_importance = self.model.coef_
+            accuracy = accuracy_score(self.y_test, y_pred)
+            recall = recall_score(self.y_test, y_pred, average='macro',zero_division = np.nan)
+            precision = precision_score(self.y_test, y_pred, average='macro',zero_division = np.nan)
+            self.output_dataset.loc[:, 'classification']=self.model.predict(self.working_dataset)
+            avg_importance = np.mean(np.abs(feature_importance), axis=0)
+
+        except:
+            empty_imp = [0 for i in self.output_dataset.columns if i != 'classification']
+            pn.state.notifications.error(f'<span style="font-family: sans-serif; font-size: 15px;">Logistic regression failed to converge, try different parameters.</span>',duration=0)
+            return empty_imp,0,0,0
+        return avg_importance,accuracy,precision,recall
 
     def run_dt(self):
         self.model = DecisionTreeClassifier(max_depth=self.select_max_depth.get_value())
@@ -211,8 +219,8 @@ class classification_module:
         y_pred = self.model.predict(self.X_test)
         feature_importance = self.model.feature_importances_
         accuracy = accuracy_score(self.y_test, y_pred)
-        recall = recall_score(self.y_test, y_pred)
-        precision = precision_score(self.y_test, y_pred)
+        recall = recall_score(self.y_test, y_pred, average='macro',zero_division = np.nan)
+        precision = precision_score(self.y_test, y_pred, average='macro',zero_division = np.nan)
         self.output_dataset.loc[:, 'classification']=self.model.predict(self.working_dataset)
         return feature_importance,accuracy,precision,recall
     
@@ -222,8 +230,8 @@ class classification_module:
         y_pred = self.model.predict(self.X_test)
         feature_importance = self.model.feature_importances_
         accuracy = accuracy_score(self.y_test, y_pred)
-        recall = recall_score(self.y_test, y_pred)
-        precision = precision_score(self.y_test, y_pred)
+        recall = recall_score(self.y_test, y_pred, average='macro',zero_division = np.nan)
+        precision = precision_score(self.y_test, y_pred, average='macro',zero_division = np.nan)
         self.output_dataset.loc[:, 'classification']=self.model.predict(self.working_dataset)
         return feature_importance,accuracy,precision,recall
 
@@ -233,6 +241,8 @@ class classification_module:
         #self.reduction_dataset["classification"] = self.reduction_dataset["classification"].astype(str)
 
         feature_names = [i for i in self.output_dataset.columns if i != 'classification']
+
+        
         coeff_df = pd.DataFrame({'Feature': feature_names, 'Coefficient': feature_importance})
         feature_importance_fig = px.bar(coeff_df, x='Feature', y='Coefficient', title='Linear classification Coefficients',template="plotly_white").update_layout(margin=dict(l=20, r=20, t=50, b=5),)
         
@@ -249,16 +259,23 @@ class classification_module:
 
     def show_lr_settings(self):
         self.select_max_depth.set_visible(False)
+        self.select_max_iteration.set_visible(True)
                  
     def show_dt_settings(self):
         self.select_max_depth.set_visible(True)
-
+        self.select_max_iteration.set_visible(False)
+    
+    def show_rf_settings(self):
+        self.select_max_depth.set_visible(True)
+        self.select_max_iteration.set_visible(False)
     
     def algo_settings_show(self,event):
-        if self.select_algorithm.value == 'Linear classification':
+        if self.select_algorithm.value == 'Logistic classification':
             self.show_lr_settings()
         elif self.select_algorithm.value == 'Decision tree':
             self.show_dt_settings()
+        elif self.select_algorithm.value == 'Random forest':
+            self.show_rf_settings()
 
     
     def freezing_dashboard(self,event):
@@ -311,7 +328,7 @@ class classification_module:
         temp_testing_dataset = self.data_handler.get_data()
         if self.validate_testing_dataset(temp_testing_dataset):
             self.testing_dataset = temp_testing_dataset
-            print('Iam here')
+
     def validate_testing_dataset(self,dataset):
         if isinstance(dataset, type(None)):
             return False
