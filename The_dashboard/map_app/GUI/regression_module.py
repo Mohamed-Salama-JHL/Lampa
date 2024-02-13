@@ -24,6 +24,8 @@ from .num_input import *
 from .gridstack_handler import grid_stack
 from .analysis_page_abstract import analysis_abstract
 from .data_handler import data_handler
+from .adv_panes import *
+
 pd.options.mode.chained_assignment = None 
 logging.basicConfig( level=logging.ERROR,force=True)
 
@@ -41,7 +43,7 @@ class regression_module:
         self.working_dataset = None
         self.output_dataset = None
         self.reduction_dataset = None
-        self.algorithms_list = ['Linear regression','Decision tree']
+        self.algorithms_list = ['Linear Regression','Decision Tree']
         self.regression_page = None
         self.actual_fig_flag = False
         self.main_page_created = False
@@ -88,10 +90,10 @@ class regression_module:
         self.create_dataset_setting_component()
         self.create_control_buttons()
         self.create_general_widgets()
-        self.regression_controls = pn.Card(pn.Column(self.algo_settings_card,self.data_settings_card,self.controls_buttons_row,self.loading), title="<h1 style='font-size: 15px;'>Regression</h1>", styles={"border": "none", "box-shadow": "none"})
+        self.regression_controls = pn.Card(pn.Column(self.algo_settings_card,self.data_settings_card,self.controls_buttons_row,self.loading), title="<h1 style='font-size: 15px;'>Regression Settings</h1>", styles={"border": "none", "box-shadow": "none"})
     
     def get_grid_stack(self,chart_list):
-        self.grid_stack_handler = grid_stack(chart_list,min_width=950,min_height=2000,ncols=6,nrows = 15, name='regression')
+        self.grid_stack_handler = grid_stack(chart_list,min_width=950,min_height=2000,ncols=6,nrows = 15, name='Regression')
         return self.grid_stack_handler.get_gridstack()
     
 
@@ -100,9 +102,9 @@ class regression_module:
         
         self.feature_importance = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Feature importance', margin=2,width=600),scroll=False,visible = False)
         self.training_data = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Training data', margin=2,width=600),scroll=False,visible = False)
-        self.MAE = pn.indicators.Number(name='Mean Absolute Error', value=0, format='{value}', font_size= '25pt')
-        self.MSE = pn.indicators.Number(name='Mean Squared Error', value=0, format='{value}', font_size= '25pt')
-        self.RMSE = pn.indicators.Number(name='Root Mean Squared Error', value=0, format='{value}', font_size= '25pt')
+        self.MAE = pn.indicators.Number(name='Mean Absolute Error', value=0, format='{value}', font_size= '20pt')
+        self.MSE = pn.indicators.Number(name='Mean Squared Error', value=0, format='{value}', font_size= '20pt')
+        self.RMSE = pn.indicators.Number(name='Root Mean Squared Error', value=0, format='{value}', font_size= '20pt')
         self.matrics_values = pn.Row(self.MAE,self.MSE,self.RMSE)
         chart_list= [self.feature_importance,self.matrics_values] 
         self.regression_main_area = self.get_grid_stack(chart_list)
@@ -110,22 +112,22 @@ class regression_module:
 
     #Need to change
     def create_algorithm_settings_component(self):
-        self.select_algorithm = pn.widgets.Select(name='Regression algorithms', options=self.algorithms_list, value ='k-means' )
-        self.select_max_depth = number_input(type='int',title='Max depth: ',tooltip_str='Max depth of the decision tree', start=1, end=10000, step=1, value=3,visible=False)
-
-        self.algo_settings_card = pn.Column(self.select_algorithm,self.select_max_depth.get_item())#, title="<h1 style='font-size: 15px;'>Algorithm settings</h1>", styles={"border": "none", "box-shadow": "none"}
+        self.select_algorithm = pn.widgets.Select(name='Regression Algorithms', options=self.algorithms_list, value ='Linear Regression' )
+        self.select_max_depth = number_input(type='int',title='Max Depth: ',tooltip_str='Max depth of the decision tree', start=1, end=10000, step=1, value=3,visible=False)
+        self.select_test_perc = number_input(type='int',title='Testing Data Percentage: ',tooltip_str='The percentage of the dataset designated for testing the model.', start=1, end=100, step=1, value=20,visible=True)
+        self.algo_settings_card = pn.Column(self.select_algorithm,self.select_test_perc.get_item(),self.select_max_depth.get_item())#, title="<h1 style='font-size: 15px;'>Algorithm settings</h1>", styles={"border": "none", "box-shadow": "none"}
 
     
     def create_dataset_setting_component(self):
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
-        self.select_regression_columns = pn.widgets.MultiChoice(name= 'regression Columns' ,options=numric_columns)
-        self.select_regression_target = pn.widgets.Select(name= 'regression Target' ,options=numric_columns)
-        self.check_normalization = pn.widgets.Switch(name='Normalization',margin = (0, 10, 10, 10))
-        norm_name = pn.widgets.StaticText(value='Normalization: ',margin = 0)
-        self.data_settings_card = pn.Column(self.select_regression_target,self.select_regression_columns,pn.Column(norm_name,self.check_normalization))#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
+        self.select_regression_columns = pn.widgets.MultiChoice(name= 'Regression Columns' ,options=numric_columns)
+        self.select_regression_target = pn.widgets.Select(name= 'Regression Target' ,options=numric_columns)
+        self.check_normalization = toggle_input('Normalisation: ','Min-Max normalisation for the features',visible=True)
+
+        self.data_settings_card = pn.Column(self.select_regression_target,self.select_regression_columns,self.check_normalization.get_item())#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
 
     def create_control_buttons(self):
-        self.run_regression_button = pn.widgets.Button(name='Run regression', button_type='primary')
+        self.run_regression_button = pn.widgets.Button(name='Run Regression', button_type='primary')
         self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary')
         self.download_regression_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_regression_data_io), filename='regression_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
         self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px')     
@@ -138,9 +140,9 @@ class regression_module:
     def run_regression(self,event=None):
         self.start_regression()    
         self.dataset_preprocessing()
-        if self.select_algorithm.value=='Linear regression':
+        if self.select_algorithm.value=='Linear Regression':
             feature_importance,mae,mse,rmse = self.run_lr()
-        elif self.select_algorithm.value=='Decision tree':
+        elif self.select_algorithm.value=='Decision Tree':
             feature_importance,mae,mse,rmse=self.run_dt()
         self.create_charts_objects(feature_importance,mae,mse,rmse)
         self.end_regression()
@@ -172,11 +174,11 @@ class regression_module:
         else:
             self.working_dataset = self.output_dataset
 
-        if self.check_normalization.value:
+        if self.check_normalization.get_value():
             self.normalize_dataset()
 
         
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.working_dataset, self.target_traing_series, test_size=0.2, random_state=42)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.working_dataset, self.target_traing_series, test_size=(self.select_test_perc.get_value()/100), random_state=42)
 
 
     #show table with nan values of the target if exist
@@ -240,9 +242,9 @@ class regression_module:
 
     
     def algo_settings_show(self,event):
-        if self.select_algorithm.value == 'Linear regression':
+        if self.select_algorithm.value == 'Linear Regression':
             self.show_lr_settings()
-        elif self.select_algorithm.value == 'Decision tree':
+        elif self.select_algorithm.value == 'Decision Tree':
             self.show_dt_settings()
 
     
@@ -321,7 +323,7 @@ class regression_module:
         else:
             self.testing_working_dataset = self.testing_output_dataset
 
-        if self.check_normalization.value:
+        if self.check_normalization.get_value():
             self.testing_working_dataset = self.scaler.transform(self.testing_working_dataset)
 
         self.testing_output_dataset.loc[:, 'Regression']=self.model.predict(self.testing_working_dataset)
