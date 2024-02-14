@@ -13,7 +13,6 @@ from panel.theme import Native
 import plotly.express as px
 import plotly.graph_objs as go
 import logging
-from .num_input import *
 from .gridstack_handler import grid_stack
 from .analysis_page_abstract import analysis_abstract
 pd.options.mode.chained_assignment = None 
@@ -27,15 +26,35 @@ pn.extension(notifications=True)
 pn.extension(design='bootstrap', template='material' )
 
 
-class text_field_manger:
+class text_field_manger: 
     def __init__(self,grid_area_obj=None) -> None:
         self.grid_area_obj = grid_area_obj
         self.text_fields = []
         self.buttons_column = pn.Column()
         self.cur_text_fields = 0
 
-    def bend_text_fields_buttons(self):
-        pass
+
+    def set_grid_area_obj(self,obj):
+        self.grid_area_obj = obj
+        
+    def check_button(self,event):
+        txt_name = event.obj.name
+        show_value = event.obj.value
+        try:
+            if show_value:
+                txt_field_index = int(txt_name[1:]) -1
+                self.add_text_field(self.text_fields[txt_field_index])
+                
+            else:
+                self.grid_area_obj.remove_chart(txt_name)
+        except:
+            pass
+        
+    def add_text_field(self,txt_field):
+        self.grid_area_obj.add_chart(txt_field)
+
+    def bend_text_fields_buttons(self,new_button):
+        new_button.watch(self.check_button,'value') 
     
     def get_buttons_column(self):
         return self.buttons_column
@@ -44,10 +63,12 @@ class text_field_manger:
     def get_fields_colum(self):
         return self.text_fields
     
-    def get_text_field(self,place_holder_text ='Write your description'):
+    def create_new_text_field(self,place_holder_text ='Write your description'):
         self.cur_text_fields+=1
         new_text_field = pn.widgets.TextEditor(mode='bubble', value=place_holder_text, margin=(40, 0, 0, 0), height=200, width=400,name=f'T{self.cur_text_fields}')
         new_button = pn.widgets.Toggle(button_type='light', button_style='solid', align='center',name=f'T{self.cur_text_fields}')
+        self.text_fields.append(new_text_field)
+        self.buttons_column.append(new_button)
+        self.bend_text_fields_buttons(new_button)
 
-        return new_text_field
     

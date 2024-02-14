@@ -20,7 +20,6 @@ import plotly.express as px
 import plotly.graph_objs as go
 import logging
 from sklearn.preprocessing import MinMaxScaler
-from .num_input import *
 from .gridstack_handler import grid_stack
 from .analysis_page_abstract import analysis_abstract
 from .data_handler import data_handler
@@ -112,7 +111,7 @@ class regression_module:
 
     #Need to change
     def create_algorithm_settings_component(self):
-        self.select_algorithm = pn.widgets.Select(name='Regression Algorithms', options=self.algorithms_list, value ='Linear Regression' )
+        self.select_algorithm = pn.widgets.Select(name='Regression Algorithms: ', options=self.algorithms_list, value ='Linear Regression' )
         self.select_max_depth = number_input(type='int',title='Max Depth: ',tooltip_str='Max depth of the decision tree', start=1, end=10000, step=1, value=3,visible=False)
         self.select_test_perc = number_input(type='int',title='Testing Data Percentage: ',tooltip_str='The percentage of the dataset designated for testing the model.', start=1, end=100, step=1, value=20,visible=True)
         self.algo_settings_card = pn.Column(self.select_algorithm,self.select_test_perc.get_item(),self.select_max_depth.get_item())#, title="<h1 style='font-size: 15px;'>Algorithm settings</h1>", styles={"border": "none", "box-shadow": "none"}
@@ -120,17 +119,17 @@ class regression_module:
     
     def create_dataset_setting_component(self):
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
-        self.select_regression_columns = pn.widgets.MultiChoice(name= 'Regression Columns' ,options=numric_columns)
-        self.select_regression_target = pn.widgets.Select(name= 'Regression Target' ,options=numric_columns)
+        self.select_regression_columns = pn.widgets.MultiChoice(name= 'Regression Columns: ' ,options=numric_columns)
+        self.select_regression_target = pn.widgets.Select(name= 'Regression Target: ' ,options=numric_columns)
         self.check_normalization = toggle_input('Normalisation: ','Min-Max normalisation for the features',visible=True)
 
         self.data_settings_card = pn.Column(self.select_regression_target,self.select_regression_columns,self.check_normalization.get_item())#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
 
     def create_control_buttons(self):
-        self.run_regression_button = pn.widgets.Button(name='Run Regression', button_type='primary')
-        self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary')
+        self.run_regression_button = pn.widgets.Button(name='Run Regression', button_type='primary',margin = (5, 3, 5, 15))
+        self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary',margin = (5, 3, 5, 7))
         self.download_regression_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_regression_data_io), filename='regression_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
-        self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px')     
+        self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px',margin = (5, 3, 5, 7))     
         self.test_data_input = pn.widgets.FileInput(name= 'Upload Testing', accept='.csv,.xlsx',design=Native,margin = (10, 25, 10, 25))
         self.controls_buttons_row = pn.Column(pn.Row(self.run_regression_button,self.update_results_button,self.freeze_dashboard,sizing_mode='stretch_width'),self.test_data_input,self.download_regression_data_button,sizing_mode='stretch_width')
     

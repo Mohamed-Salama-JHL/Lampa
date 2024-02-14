@@ -24,7 +24,6 @@ import copy
 from panel.layout.gridstack import GridStack
 import logging
 from sklearn.preprocessing import MinMaxScaler
-from .num_input import *
 from .gridstack_handler import grid_stack
 from .analysis_page_abstract import analysis_abstract
 from .adv_panes import *
@@ -110,19 +109,20 @@ class clustering_module:
         #self.test_column = pn.Column(self.elbow_chart,name='Clustering')
 
     def create_algorithm_settings_component(self):
-        self.select_algorithm = pn.widgets.Select(name='Clustering Algorithms', options=self.algorithms_list, value ='K-means' )
-        self.select_num_clusters = number_input(type='int',title='Number of Clusters: ',tooltip_str='Number of clusters which <br>will be used in the charts', start=1, end=15, step=1, value=3)
-        self.select_feature_reduction_algorithm_selection = pn.widgets.Select(name='Feature Reduction Algorithms', options=self.feature_reduction_algorithms_list)
-        self.dbscan_eps = number_input(type='float',title='EPS Value: ',tooltip_str='The maximum distance <br>between two samples for<br> one to be considered <br> as in the neighborhood <br> of the other.', value=0.5, step=1e-1, start=0, end=100000000,visible=False)
-        self.dbscan_eps_min_samples = number_input(type='int',title='Min Number of Samples',tooltip_str='The number of samples<br> (or total weight) in<br> a neighborhood for <br>a point to be considered<br> as a core point.<br> This includes the<br> point itself. ', start=1, end=1000000, step=1, value=5,visible=False)
-        self.algo_settings_card = pn.Column(self.select_algorithm, self.select_feature_reduction_algorithm_selection,
+        self.select_feature_reduction_algorithm_selection_tooltips = select_input('Feature Reduction Algorithms: ','Choose which feature reduction algorithm that will be used for visualizing in 2D scatter plot.',options=self.feature_reduction_algorithms_list)
+        self.select_algorithm = pn.widgets.Select(name='Clustering Algorithms: ', options=self.algorithms_list, value ='K-means' )
+        self.select_num_clusters = number_input(type='int',title='Number of Clusters: ',tooltip_str='Number of clusters which will be used in the charts', start=1, end=15, step=1, value=3)
+        self.select_feature_reduction_algorithm_selection = self.select_feature_reduction_algorithm_selection_tooltips.get_core_item()
+        self.dbscan_eps = number_input(type='float',title='EPS Value: ',tooltip_str='The maximum distance between two samples for one to be considered as in the neighborhood of the other.', value=0.5, step=1e-1, start=0, end=100000000,visible=False)
+        self.dbscan_eps_min_samples = number_input(type='int',title='Min Number of Samples: ',tooltip_str='The number of samples (or total weight) in a neighborhood for a point to be considered as a core point. This includes the point itself. ', start=1, end=1000000, step=1, value=5,visible=False)
+        self.algo_settings_card = pn.Column(self.select_algorithm, self.select_feature_reduction_algorithm_selection_tooltips.get_item(),
                                             self.select_num_clusters.get_item(),
                                           self.dbscan_eps.get_item(),self.dbscan_eps_min_samples.get_item())#, title="<h1 style='font-size: 15px;'>Algorithm settings</h1>", styles={"border": "none", "box-shadow": "none"}
 
     def create_dataset_setting_component(self):
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
-        self.select_clustering_columns = pn.widgets.MultiChoice(name= 'Clustering Columns' ,options=numric_columns)
-        self.select_datapoints_columns = pn.widgets.MultiChoice(name= 'Tooltip Datapoints Columns' ,options=list(self.dataset.columns))
+        self.select_clustering_columns = pn.widgets.MultiChoice(name= 'Clustering Columns: ' ,options=numric_columns)
+        self.select_datapoints_columns = pn.widgets.MultiChoice(name= 'Tooltip Datapoints Columns: ' ,options=list(self.dataset.columns))
         self.check_normalization = toggle_input('Normalisation: ','Min-Max normalisation for the features',visible=True)
         self.data_settings_card = pn.Column(self.select_clustering_columns,self.select_datapoints_columns,self.check_normalization.get_item())#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
 

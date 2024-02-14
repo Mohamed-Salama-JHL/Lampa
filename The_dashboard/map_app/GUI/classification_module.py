@@ -23,7 +23,6 @@ import plotly.express as px
 import plotly.graph_objs as go
 import logging
 from sklearn.preprocessing import MinMaxScaler
-from .num_input import *
 from .gridstack_handler import grid_stack
 from .analysis_page_abstract import analysis_abstract
 from .data_handler import data_handler
@@ -115,7 +114,7 @@ class classification_module:
 
     #Need to change
     def create_algorithm_settings_component(self):
-        self.select_algorithm = pn.widgets.Select(name='Classification Algorithms', options=self.algorithms_list, value ='Logistic Regression' )
+        self.select_algorithm = pn.widgets.Select(name='Classification Algorithms: ', options=self.algorithms_list, value ='Logistic Regression' )
         self.select_max_depth = number_input(type='int',title='Max Depth: ',tooltip_str='Max depth of the decision tree', start=1, end=10000, step=1, value=3,visible=False)
         self.select_max_iteration = number_input(type='int',title='Max Iteration: ',tooltip_str='Max iteration for logistic regression', start=100, end=100000, step=1, value=100,visible=True)
         self.select_test_perc = number_input(type='int',title='Testing Data Percentage: ',tooltip_str='The percentage of the dataset designated for testing the model.', start=1, end=100, step=1, value=20,visible=True)
@@ -125,8 +124,8 @@ class classification_module:
     
     def create_dataset_setting_component(self):
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
-        self.select_classification_columns = pn.widgets.MultiChoice(name= 'Classification Columns' ,options=numric_columns)
-        self.select_classification_target = pn.widgets.Select(name= 'Classification Target' ,options=numric_columns)
+        self.select_classification_columns = pn.widgets.MultiChoice(name= 'Classification Columns: ' ,options=numric_columns)
+        self.select_classification_target = pn.widgets.Select(name= 'Classification Target: ' ,options=numric_columns)
         self.check_normalization = toggle_input('Normalisation: ','Min-Max normalisation for the features',visible=True)
         
         self.data_settings_card = pn.Column(self.select_classification_target,self.select_classification_columns,self.check_normalization.get_item())#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})

@@ -29,17 +29,15 @@ from .sankey_handler import *
 from .gridstack_handler import grid_stack
 from .classification_module import *
 from .adv_panes import multiselect_input,select_input
+from .text_field_module import *
 
 logging.basicConfig( level=logging.ERROR,force=True)
 
 pn.extension('floatpanel')
 pn.extension('gridstack')
-
 pn.extension('tabulator')
 pn.extension('plotly')
-#pn.extension(loading_spinner='dots', loading_color='#00aa41')
 pn.extension(notifications=True)
-
 pn.extension(
 
      design='bootstrap', template='material' 
@@ -235,12 +233,12 @@ class map_dashboard:
         self.choose_geo_component = pn.Column(self.second_sentence,self.select_geo,self.geojson_input,self.button_row_map, visible=False)
 
     def choosing_columns_fields(self):
-        self.select_location_column_tooltip = select_input('Location Column','Choose the column from the dataset with location identifiers')
-        self.select_year_column_tooltip = select_input('Time Column','Choose a column for date or time filtering or choose "None" if not applicable')
-        self.select_value_column_tooltip = select_input('Initial Value Column (Y-axis)','Choose the initial column for the y-axis in charts and values on the map if exist.')
-        self.select_geo_field_tooltip = select_input('Geo Mapping Field','Choose the field in the GeoJSON file that maps with the location column and have the location identifiers.')
-        self.select_chart_x_tooltip = select_input('Initial Charts Column (X-axis)','Choose the initial column for the x-axis in charts')
-        self.select_filter_columns_tooltip = multiselect_input('Filter Columns','Choose columns for dataset filters in the dashboard(not date/time type).')
+        self.select_location_column_tooltip = select_input('Location Column: ','Choose the column from the dataset with location identifiers that maps with GeoJSON Mapping field')
+        self.select_year_column_tooltip = select_input('Time Column: ','Choose a column for date or time filtering or choose "None" if not applicable')
+        self.select_value_column_tooltip = select_input('Initial Value Column (Y-axis): ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_geo_field_tooltip = select_input('Geo Mapping Field: ','Choose the field in the GeoJSON file that maps with the location column and have the location identifiers.')
+        self.select_chart_x_tooltip = select_input('Initial Charts Column (X-axis): ','Choose the initial column for the x-axis in charts')
+        self.select_filter_columns_tooltip = multiselect_input('Filter Columns: ','Choose columns for dataset filters in the dashboard(not date/time type).')
         
         #########
         self.third_sentence = pn.pane.Markdown('##### **Step 3:** Settings.<br />', styles={"font-size": "10px"})
@@ -274,10 +272,10 @@ class map_dashboard:
         self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, height=3050,styles={ "background":"#FAFAFA"})
         
     def creating_map_settings_controls(self):
-        self.select_base_map = pn.widgets.Select(name='Base Map', options=self.map_base_option, design=self.design)
-        self.select_color_map = pn.widgets.Select(name='Map Colouring', options=list(self.map_color_option.keys()), design=self.design,value = 'Red-Yellow-Blue')
-        self.transparency_map_range = pn.widgets.IntSlider(name='Transparency Level',start=0, end=100, value=50, step=1, design=self.design)
-        self.select_tooltip = pn.widgets.MultiChoice(name='Tooltip Columns', options=[], design=self.design)
+        self.select_base_map = pn.widgets.Select(name='Base Map: ', options=self.map_base_option, design=self.design)
+        self.select_color_map = pn.widgets.Select(name='Map Colouring: ', options=list(self.map_color_option.keys()), design=self.design,value = 'Red-Yellow-Blue')
+        self.transparency_map_range = pn.widgets.IntSlider(name='Transparency Level: ',start=0, end=100, value=50, step=1, design=self.design)
+        self.select_tooltip = pn.widgets.MultiChoice(name='Tooltip Columns: ', options=[], design=self.design)
         self.map_settings_card = pn.Card(self.select_base_map,self.select_color_map,self.transparency_map_range,self.select_tooltip, title="<h1 style='font-size: 15px;'>Map settings</h1>", styles={"border": "none", "box-shadow": "none"})
     
     def creating_general_controls(self):
@@ -292,12 +290,12 @@ class map_dashboard:
         self.button_row = pn.Row(self.update_map_button,self.reset_filters_button,self.freeze_show, design=self.design)
     
     def creating_axes_controls(self):
-        self.select_value_column_update_tooltip = select_input('Initial Value Column (Y-axis)','Choose the initial column for the y-axis in charts and values on the map if exist.')
-        self.select_heatmap_fields_tooltip = multiselect_input('Heatmap Columns','Choose the initial column for the y-axis in charts and values on the map if exist.')
-        self.select_chart_x_update_tooltip = select_input('Charts Field (X-axis)','Choose the initial column for the y-axis in charts and values on the map if exist.')
-        self.select_legend_update_tooltip = select_input('Legend','Choose the initial column for the y-axis in charts and values on the map if exist.')
-        self.select_sankey_source_tooltip = select_input('Sankey Diagram Source','Choose the initial column for the y-axis in charts and values on the map if exist.')
-        self.select_sankey_target_tooltip = select_input('Sankey Diagram Target','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_value_column_update_tooltip = select_input('Initial Value Column (Y-axis): ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_heatmap_fields_tooltip = multiselect_input('Heatmap Columns: ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_chart_x_update_tooltip = select_input('Charts Field (X-axis): ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_legend_update_tooltip = select_input('Legend: ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_sankey_source_tooltip = select_input('Sankey Diagram Source: ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_sankey_target_tooltip = select_input('Sankey Diagram Target: ','Choose the initial column for the y-axis in charts and values on the map if exist.')
 
         self.select_value_column_update = self.select_value_column_update_tooltip.get_core_item()
         self.select_heatmap_fields =  self.select_heatmap_fields_tooltip.get_core_item()
@@ -486,7 +484,7 @@ class map_dashboard:
         columns_none.append('None')
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
 
-        self.select_value_column_update.options = columns
+        self.select_value_column_update.options = numric_columns
         self.select_chart_x_update.options = columns
         self.select_legend_update.options = columns
         self.select_tooltip.options = columns
@@ -519,7 +517,7 @@ class map_dashboard:
         columns = list(self.dataset.columns)
         columns_none = columns.copy()
         columns_none.append('None')
-        #numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
+        numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
         if not self.skip_map_flag:
             geo_fields = self.geo_handler.get_all_fields()
             value_geo_field = 'GEOID' if 'GEOID' in geo_fields else geo_fields[0]
@@ -531,7 +529,7 @@ class map_dashboard:
 
         self.column_field_selection_compoent.visible = True
         self.select_filter_columns.options = columns
-        self.select_value_column.options = columns
+        self.select_value_column.options = numric_columns
         self.select_year_column.options = columns_none
         self.select_chart_x.options = columns
 
@@ -905,7 +903,6 @@ class map_dashboard:
             maping_overlap = self.geo_handler.check_overlap_locations(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
             if (maping_overlap<=99 and self.mapping_failure_count==0) or (maping_overlap<=99 and maping_overlap!=self.latest_overlap_mapping):
                 self.loading.visible = False
-                self.create_map_final_button.name = 'Are you Sure ?'
                 pn.state.notifications.error(f'<span style="font-family: sans-serif; font-size: 15px;">Location mapping overlap is {maping_overlap}%</span>',duration=0)
                 self.mapping_failure_count+=1
                 self.latest_overlap_mapping = maping_overlap
@@ -1021,8 +1018,11 @@ class map_dashboard:
     def update_other_components(self):
         if self.clustering_module != None:
             self.clustering_module.set_dataset(self.curent_filter_data)
-        if self.clustering_module != None:
-            self.clustering_module.set_dataset(self.curent_filter_data)
+        if self.regression_module != None:
+            self.regression_module.set_dataset(self.curent_filter_data)
+        if self.classification_module != None:
+            self.classification_module.set_dataset(self.curent_filter_data)
+
     def add_clustering_results(self,event):
         #try:
             clusters = self.clustering_module.get_cluster_column()
