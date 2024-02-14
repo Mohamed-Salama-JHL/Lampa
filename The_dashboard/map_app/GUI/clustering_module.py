@@ -24,9 +24,9 @@ import copy
 from panel.layout.gridstack import GridStack
 import logging
 from sklearn.preprocessing import MinMaxScaler
-from .num_input import *
 from .gridstack_handler import grid_stack
 from .analysis_page_abstract import analysis_abstract
+from .adv_panes import *
 
 pd.options.mode.chained_assignment = None 
 logging.basicConfig( level=logging.ERROR,force=True)
@@ -45,7 +45,7 @@ class clustering_module:
         self.working_dataset = None
         self.output_dataset = None
         self.reduction_dataset = None
-        self.algorithms_list = ['k-means','DBscan','Hierarchical Clustering']
+        self.algorithms_list = ['K-means','DBscan','Hierarchical Clustering']
         self.feature_reduction_algorithms_list = ['PCA','t-SNE']
         self.clustering_page = None
         self.actual_fig_flag = False
@@ -91,7 +91,7 @@ class clustering_module:
         self.create_dataset_setting_component()
         self.create_control_buttons()
         self.create_general_widgets()
-        self.clustering_controls = pn.Card(pn.Column(self.algo_settings_card,self.data_settings_card,self.controls_buttons_row,self.loading), title="<h1 style='font-size: 15px;'>Clustering</h1>", styles={"border": "none", "box-shadow": "none"})
+        self.clustering_controls = pn.Card(pn.Column(self.algo_settings_card,self.data_settings_card,self.controls_buttons_row,self.loading), title="<h1 style='font-size: 15px;'>Clustering Settings</h1>", styles={"border": "none", "box-shadow": "none"})
     
     def get_grid_stack(self,chart_list):
         self.grid_stack_handler = grid_stack(chart_list,min_width=950,min_height=2000,ncols=6,nrows = 15, name='Clustering')
@@ -99,41 +99,32 @@ class clustering_module:
     
     def create_main_area(self):
         
-        self.elbow_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Elbow chart', margin=2,width=600),scroll=False,visible = False)
-        self.data_points_2d = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='datapoint chart', margin=2,width=600),scroll=False,visible = False)
-        self.data_points_2d_actual = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='datapoint chart', margin=2,width=600),scroll=False)
+        self.elbow_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Elbow Chart', margin=2,width=600),scroll=False,visible = False)
+        self.data_points_2d = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Datapoint Chart', margin=2,width=600),scroll=False,visible = False)
+        self.data_points_2d_actual = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Datapoint Chart', margin=2,width=600),scroll=False)
         chart_list= [self.data_points_2d,self.elbow_chart] 
         self.clustering_main_area = self.get_grid_stack(chart_list)
         self.clustering_main_area.visible = True
 
         #self.test_column = pn.Column(self.elbow_chart,name='Clustering')
 
-
-    def create_main_area_alter(self):
-        if not self.main_page_created:
-            self.main_page_created = True
-            self.elbow_chart = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Elbow chart', margin=2),scroll=False,visible = False)
-            self.data_points_2d = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='datapoint chart', margin=2),scroll=False,visible = False)
-            self.data_points_2d_actual = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='datapoint chart', margin=2),scroll=False)
-            self.clustering_main_area = pn.Column(self.data_points_2d,self.elbow_chart,self.data_points_2d_actual,name='Clustering',visible = True)
-
     def create_algorithm_settings_component(self):
-        self.select_algorithm = pn.widgets.Select(name='Clustering algorithms', options=self.algorithms_list, value ='k-means' )
-        self.select_num_clusters = number_input(type='int',title='Number of clusters: ',tooltip_str='Number of clusters which <br>will be used in the charts', start=1, end=15, step=1, value=3)
-        self.select_feature_reduction_algorithm_selection = pn.widgets.Select(name='Feature reduction algorithms', options=self.feature_reduction_algorithms_list)
-        self.dbscan_eps = number_input(type='float',title='eps value: ',tooltip_str='The maximum distance <br>between two samples for<br> one to be considered <br> as in the neighborhood <br> of the other.', value=0.5, step=1e-1, start=0, end=100000000,visible=False)
-        self.dbscan_eps_min_samples = number_input(type='int',title='Min number of Samples',tooltip_str='The number of samples<br> (or total weight) in<br> a neighborhood for <br>a point to be considered<br> as a core point.<br> This includes the<br> point itself. ', start=1, end=1000000, step=1, value=5,visible=False)
-        self.algo_settings_card = pn.Column(self.select_algorithm, self.select_feature_reduction_algorithm_selection,
+        self.select_feature_reduction_algorithm_selection_tooltips = select_input('Feature Reduction Algorithms: ','Choose which feature reduction algorithm that will be used for visualizing in 2D scatter plot.',options=self.feature_reduction_algorithms_list)
+        self.select_algorithm = pn.widgets.Select(name='Clustering Algorithms: ', options=self.algorithms_list, value ='K-means' )
+        self.select_num_clusters = number_input(type='int',title='Number of Clusters: ',tooltip_str='Number of clusters which will be used in the charts', start=1, end=15, step=1, value=3)
+        self.select_feature_reduction_algorithm_selection = self.select_feature_reduction_algorithm_selection_tooltips.get_core_item()
+        self.dbscan_eps = number_input(type='float',title='EPS Value: ',tooltip_str='The maximum distance between two samples for one to be considered as in the neighborhood of the other.', value=0.5, step=1e-1, start=0, end=100000000,visible=False)
+        self.dbscan_eps_min_samples = number_input(type='int',title='Min Number of Samples: ',tooltip_str='The number of samples (or total weight) in a neighborhood for a point to be considered as a core point. This includes the point itself. ', start=1, end=1000000, step=1, value=5,visible=False)
+        self.algo_settings_card = pn.Column(self.select_algorithm, self.select_feature_reduction_algorithm_selection_tooltips.get_item(),
                                             self.select_num_clusters.get_item(),
                                           self.dbscan_eps.get_item(),self.dbscan_eps_min_samples.get_item())#, title="<h1 style='font-size: 15px;'>Algorithm settings</h1>", styles={"border": "none", "box-shadow": "none"}
 
     def create_dataset_setting_component(self):
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
-        self.select_clustering_columns = pn.widgets.MultiChoice(name= 'Clustering Columns' ,options=numric_columns)
-        self.select_datapoints_columns = pn.widgets.MultiChoice(name= 'Tooltip datapoints Columns' ,options=list(self.dataset.columns))
-        self.check_normalization = pn.widgets.Switch(name='Normalization',margin = 5)
-        norm_name = pn.widgets.StaticText(value='Normalization: ',margin = 0)
-        self.data_settings_card = pn.Column(self.select_clustering_columns,self.select_datapoints_columns,pn.Column(norm_name,self.check_normalization))#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
+        self.select_clustering_columns = pn.widgets.MultiChoice(name= 'Clustering Columns: ' ,options=numric_columns)
+        self.select_datapoints_columns = pn.widgets.MultiChoice(name= 'Tooltip Datapoints Columns: ' ,options=list(self.dataset.columns))
+        self.check_normalization = toggle_input('Normalisation: ','Min-Max normalisation for the features',visible=True)
+        self.data_settings_card = pn.Column(self.select_clustering_columns,self.select_datapoints_columns,self.check_normalization.get_item())#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
 
     def create_control_buttons(self):
         self.run_clustering_button = pn.widgets.Button(name='Run Clustering', button_type='primary')
@@ -149,7 +140,7 @@ class clustering_module:
         self.start_clustering()    
         self.dataset_preprocessing()
         distortions = None
-        if self.select_algorithm.value=='k-means':
+        if self.select_algorithm.value=='K-means':
             number_clusters = int(self.select_num_clusters.get_value())
             distortions = self.run_kmeans(number_clusters)
         elif self.select_algorithm.value=='DBscan':
@@ -182,7 +173,7 @@ class clustering_module:
         else:
             self.working_dataset = self.output_dataset
 
-        if self.check_normalization.value:
+        if self.check_normalization.get_value():
             self.normalize_dataset()
     
     def normalize_dataset(self):
@@ -319,7 +310,7 @@ class clustering_module:
         self.grid_stack_handler.remove_chart(self.elbow_chart.name)
     
     def algo_settings_show(self,event):
-        if self.select_algorithm.value == 'k-means':
+        if self.select_algorithm.value == 'K-means':
             self.show_kmeans_settings()
         elif self.select_algorithm.value == 'DBscan':
             self.show_dbscan_settings()

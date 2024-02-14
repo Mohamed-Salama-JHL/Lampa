@@ -28,16 +28,16 @@ from .regression_module import *
 from .sankey_handler import *
 from .gridstack_handler import grid_stack
 from .classification_module import *
+from .adv_panes import multiselect_input,select_input
+from .text_field_module import *
+
 logging.basicConfig( level=logging.ERROR,force=True)
 
 pn.extension('floatpanel')
 pn.extension('gridstack')
-
 pn.extension('tabulator')
 pn.extension('plotly')
-#pn.extension(loading_spinner='dots', loading_color='#00aa41')
 pn.extension(notifications=True)
-
 pn.extension(
 
      design='bootstrap', template='material' 
@@ -122,27 +122,67 @@ class map_dashboard:
     def about_page_values(self):
         #pn.state.template.logo = "C:/Users/MS44253/Desktop/logo.png"
 
-        welcome = pn.pane.Markdown('Welcome to **LAMPA.**',styles={'font-size': '24pt','font-family': 'Microsoft Sans Serif'}) 
+        welcome = pn.pane.Markdown('Welcome to **LAMPA.**',styles={'font-size': '20pt','font-family': 'Microsoft Sans Serif'}) 
 
-        penguins_art = pn.pane.Markdown('This application is a free open source visualization tool'
-                                     ,styles={'font-size': '19pt','color':'#676767'}) 
+        #penguins_art = pn.pane.Markdown('This application is a free open source visualization tool',styles={'font-size': '19pt','color':'#676767'}) 
 
+
+        page_text = pn.pane.HTML('''<!DOCTYPE html>
+                                    <html lang="en">
+                                    <head>
+                                        <meta charset="UTF-8">
+                                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                        <title>About Lampa</title>
+                                        <style>
+                                            /* Add some basic styling for positioning the SVG */
+                                            svg {
+                                                float: right;
+                                                width: 200px; /* Adjust the width as needed */
+                                                margin-left: 20px; /* Add some margin for spacing */
+                                            }
+                                        </style>
+                                    </head>
+
+                                    <body>
+
+                                        <p>Lampa was developed by Mohamed Salama from James Hutton Ltd and was part of a project funded by Syngenta looking at ways in which we can develop tools to visualize and explore environmental indicator type datasets.</p>
+
+                                        <p>Lampa had input from the following team:</p>
+                                        
+                                        <ul>
+                                            <li>Donia Mühlematter (Syngenta)</li>
+                                            <li>Mafalda Nina (Syngenta)</li>
+                                            <li>Paul Shaw (Hutton)</li>
+                                            <li>Sebastian Raubach (Hutton)</li>
+                                            <li>Cathy Hawes (Hutton)</li>
+                                        </ul>
+
+                                        <p>and input from friends and colleagues within Information and Computational Sciences and Ecological Sciences at the James Hutton Institute in Invergowrie.</p>
+
+                                        <p>If you have any questions or want to talk to us about Lampa then please contact Mohamed Salama on <a href="mailto:mohamed.salama@hutton.ac.uk">mohamed.salama@hutton.ac.uk</a>.</p>
+
+                                        <p>You can also contact us by mail:</p>
+                                        
+                                        <address>
+                                            The James Hutton Institute<br>
+                                            Invergowrie<br>
+                                            Dundee DD2 5DA<br>
+                                            Scotland UK
+                                        </address>
+
+                                        <p>And visit our website <a href="https://www.hutton.ac.uk" target="_blank">https://www.hutton.ac.uk</a></p>
+
+                                        <p>The source code for Lampa can be found on our GitHub page <a href="https://github.com/Mohamed-Salama-JHL/Lampa" target="_blank">https://github.com/Mohamed-Salama-JHL/Lampa</a>.<br>We promote open science and open source. If you want to be part of the project contact us and we would be glad to have you on board!</p>
+
+                                    </body>
+
+                                    </html>
+                                        ''')
         credit = pn.pane.SVG("/code/map_app/GUI/Static_data/Lampa_logo_only.svg",align=('end', 'center'), height=220,margin=(10, 50)) 
 
-        instructions = """
-        This app ...............................................................
-        .......................................................................
-        ............................
-        """
-
-        license = """
-        ### License
-
-        doesn't require."
-        """
 
         self.about_page_component =  pn.Column(
-            welcome, penguins_art, credit,
+            welcome, pn.Row(page_text, credit),
             sizing_mode='stretch_width', visible = False
         )
     def create_home_page(self):
@@ -166,7 +206,7 @@ class map_dashboard:
         jhi_logo = pn.pane.SVG("/code/map_app/GUI/Static_data/jhi_logo.svg",align=('end', 'center'), height=100,margin=(10, 50)) 
         jhl_logo = pn.pane.SVG("/code/map_app/GUI/Static_data/jhl_logo.svg",align=('end', 'center'), height=130,margin=(10, 50)) 
         logos_row = pn.Row(jhl_logo,syngenta_logo,jhi_logo,align =('center','end'),margin=(30, 10))
-        logo_text =pn.pane.Markdown('**Meet our supporters....**',align = 'center',styles={'font-size': '22pt'}) 
+        logo_text =pn.pane.Markdown('**Lampa Team**',align = 'center',styles={'font-size': '22pt'}) 
         logos_column = pn.Column(logo_text,pn.layout.Divider(),logos_row,align =('center','end'),margin=(180, 10))
         
         self.home_page_component =  pn.Column(intro_widged,flow_diagram,logos_column                           
@@ -174,7 +214,7 @@ class map_dashboard:
         
     def uploading_dataset_components(self):
         self.first_sentence = pn.pane.Markdown('##### **Step 1:** Upload data.<br />', styles={"font-size": "10px"})
-        self.file_input = pn.widgets.FileInput(name= 'Upload data', accept='.csv,.xlsx', design=self.design)
+        self.file_input = pn.widgets.FileInput(name= 'Upload Data', accept='.csv,.xlsx', design=self.design)
         self.next_choose_geo = pn.widgets.Button(name='Next', button_type='primary', disabled= True, design=self.design)
         
         self.upload_dataset_component = pn.Column(self.first_sentence,self.file_input,self.next_choose_geo, visible=True)
@@ -184,7 +224,7 @@ class map_dashboard:
         geo_maps_names = list(self.geo_handler.get_maps_names())
         geo_maps_names.append('Upload Geojson')
         
-        self.second_sentence = pn.pane.Markdown('##### **Step 2:** Plot GeoJson.<br />', styles={"font-size": "10px"})
+        self.second_sentence = pn.pane.Markdown('##### **Step 2:** Plot GeoJSON.<br />', styles={"font-size": "10px"})
         self.select_geo = pn.widgets.Select(name='Select Map', options=geo_maps_names, design=self.design)
         self.next_map_button = pn.widgets.Button(name='Next', button_type='primary', disabled= True, design=self.design)
         self.skip_map_button = pn.widgets.Button(name='Skip', button_type='primary', disabled= False, design=self.design)
@@ -193,18 +233,26 @@ class map_dashboard:
         self.choose_geo_component = pn.Column(self.second_sentence,self.select_geo,self.geojson_input,self.button_row_map, visible=False)
 
     def choosing_columns_fields(self):
+        self.select_location_column_tooltip = select_input('Location Column: ','Choose the column from the dataset with location identifiers that maps with GeoJSON Mapping field')
+        self.select_year_column_tooltip = select_input('Time Column: ','Choose a column for date or time filtering or choose "None" if not applicable')
+        self.select_value_column_tooltip = select_input('Initial Value Column (Y-axis): ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_geo_field_tooltip = select_input('Geo Mapping Field: ','Choose the field in the GeoJSON file that maps with the location column and have the location identifiers.')
+        self.select_chart_x_tooltip = select_input('Initial Charts Column (X-axis): ','Choose the initial column for the x-axis in charts')
+        self.select_filter_columns_tooltip = multiselect_input('Filter Columns: ','Choose columns for dataset filters in the dashboard(not date/time type).')
+        
+        #########
         self.third_sentence = pn.pane.Markdown('##### **Step 3:** Settings.<br />', styles={"font-size": "10px"})
-        self.select_filter_columns = pn.widgets.MultiChoice(name='Filter columns', options=[],  design=self.design)
-        self.select_location_column = pn.widgets.Select(name='Location column', options=[], design=self.design)
-        self.select_year_column = pn.widgets.Select(name='Time column', options=[], design=self.design)
-        self.select_value_column = pn.widgets.Select(name='Initial value column (Y-axis)', options=[], design=self.design)
+        self.select_filter_columns = self.select_filter_columns_tooltip.get_core_item()
+        self.select_location_column = self.select_location_column_tooltip.get_core_item()
+        self.select_year_column = self.select_year_column_tooltip.get_core_item()
+        self.select_value_column = self.select_value_column_tooltip.get_core_item()
+        self.select_geo_field = self.select_geo_field_tooltip.get_core_item()
+        self.select_chart_x = self.select_chart_x_tooltip.get_core_item()
         self.create_map_final_button = pn.widgets.Button(name='Create Dashboard', button_type='primary', design=self.design)
-        self.select_geo_field = pn.widgets.Select(name='Geo Mapping Field', options=[], design=self.design)
-        self.select_chart_x = pn.widgets.Select(name='Initial charts column (X-axis)', options=[], design=self.design)
 
-        self.column_field_selection_compoent = pn.Column(self.third_sentence, self.select_filter_columns,self.select_location_column,
-                                                         self.select_year_column,self.select_value_column,self.select_chart_x,
-                                                         self.select_geo_field,self.create_map_final_button, visible=False)
+        self.column_field_selection_compoent = pn.Column(self.third_sentence, self.select_filter_columns_tooltip.get_item(),self.select_location_column_tooltip.get_item(),
+                                                         self.select_year_column_tooltip.get_item(),self.select_value_column_tooltip.get_item(),self.select_chart_x_tooltip.get_item(),
+                                                         self.select_geo_field_tooltip.get_item(),self.create_map_final_button, visible=False)
         
     def creating_charts_controls_toggle(self):
         #Remove this button
@@ -224,15 +272,15 @@ class map_dashboard:
         self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, height=3050,styles={ "background":"#FAFAFA"})
         
     def creating_map_settings_controls(self):
-        self.select_base_map = pn.widgets.Select(name='Base Map', options=self.map_base_option, design=self.design)
-        self.select_color_map = pn.widgets.Select(name='Map Coloring', options=list(self.map_color_option.keys()), design=self.design,value = 'Red-Yellow-Blue')
-        self.transparency_map_range = pn.widgets.IntSlider(name='Transparency level',start=0, end=100, value=50, step=1, design=self.design)
-        self.select_tooltip = pn.widgets.MultiChoice(name='Tooltip columns', options=[], design=self.design)
+        self.select_base_map = pn.widgets.Select(name='Base Map: ', options=self.map_base_option, design=self.design)
+        self.select_color_map = pn.widgets.Select(name='Map Colouring: ', options=list(self.map_color_option.keys()), design=self.design,value = 'Red-Yellow-Blue')
+        self.transparency_map_range = pn.widgets.IntSlider(name='Transparency Level: ',start=0, end=100, value=50, step=1, design=self.design)
+        self.select_tooltip = pn.widgets.MultiChoice(name='Tooltip Columns: ', options=[], design=self.design)
         self.map_settings_card = pn.Card(self.select_base_map,self.select_color_map,self.transparency_map_range,self.select_tooltip, title="<h1 style='font-size: 15px;'>Map settings</h1>", styles={"border": "none", "box-shadow": "none"})
     
     def creating_general_controls(self):
         self.final_sentence = pn.pane.Markdown('##### **Step 4:** Visualizations.<br />', styles={"font-size": "10px"})
-        self.agg_buttons = pn.widgets.ToggleGroup(name='Aggregation type', value='sum', options=['sum', 'min' , 'max' , 'mean'], behavior="radio",  design=self.design)
+        self.agg_buttons = pn.widgets.ToggleGroup(name='Aggregation Type', value='sum', options=['sum', 'min' , 'max' , 'mean'], behavior="radio",  design=self.design)
         self.year_range = pn.widgets.IntRangeSlider(name='Year',start=1997, end=2017, value=(1997, 2017), step=1, styles=custom_style, stylesheets=[stylesheet], design=self.design, visible=False)
         self.update_map_button = pn.widgets.Button(name='Update Dashboard', button_type='primary', design=self.design)
         self.reset_filters_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
@@ -242,13 +290,20 @@ class map_dashboard:
         self.button_row = pn.Row(self.update_map_button,self.reset_filters_button,self.freeze_show, design=self.design)
     
     def creating_axes_controls(self):
-        self.select_value_column_update = pn.widgets.Select(name='Value column (Y-axis)', options=[], design=self.design)
-        self.select_heatmap_fields = pn.widgets.MultiChoice(name='Heatmap columns', options=[],  design=self.design)
-        self.select_chart_x_update = pn.widgets.Select(name='Charts Field (X-axis)', options=[], design=self.design)
-        self.select_legend_update = pn.widgets.Select(name='Legend', options=[], design=self.design)
-        self.select_sankey_source = pn.widgets.Select(name='Sankey source', options=[], design=self.design)
-        self.select_sankey_target = pn.widgets.Select(name='Sankey target', options=[], design=self.design)
-        self.axes_settings_card = pn.Card(self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields, self.select_sankey_source,self.select_sankey_target, title="<h1 style='font-size: 15px;'>Axes settings</h1>", styles={"border": "none", "box-shadow": "none"})
+        self.select_value_column_update_tooltip = select_input('Initial Value Column (Y-axis): ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_heatmap_fields_tooltip = multiselect_input('Heatmap Columns: ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_chart_x_update_tooltip = select_input('Charts Field (X-axis): ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_legend_update_tooltip = select_input('Legend: ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_sankey_source_tooltip = select_input('Sankey Diagram Source: ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_sankey_target_tooltip = select_input('Sankey Diagram Target: ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+
+        self.select_value_column_update = self.select_value_column_update_tooltip.get_core_item()
+        self.select_heatmap_fields =  self.select_heatmap_fields_tooltip.get_core_item()
+        self.select_chart_x_update =  self.select_chart_x_update_tooltip.get_core_item()
+        self.select_legend_update =  self.select_legend_update_tooltip.get_core_item()
+        self.select_sankey_source =  self.select_sankey_source_tooltip.get_core_item()
+        self.select_sankey_target =  self.select_sankey_target_tooltip.get_core_item()
+        self.axes_settings_card = pn.Card(self.select_value_column_update_tooltip.get_item(),self.select_chart_x_update_tooltip.get_item(),self.select_legend_update_tooltip.get_item(),self.select_heatmap_fields_tooltip.get_item(), self.select_sankey_source_tooltip.get_item(),self.select_sankey_target_tooltip.get_item(), title="<h1 style='font-size: 15px;'>Axes settings</h1>", styles={"border": "none", "box-shadow": "none"})
     def creating_analysis_panel(self):
         self.clustering_show = pn.widgets.Toggle(button_type='primary', button_style='outline', align='center',name = 'Clustering' )
         self.regression_show = pn.widgets.Toggle(button_type='primary', button_style='outline', name='Regression', align='center')
@@ -270,7 +325,7 @@ class map_dashboard:
         self.about_button = pn.widgets.Button(name="About", button_type="primary", icon ='alert-circle',align=('end','center'),margin = 0)
         self.home_button = pn.widgets.Button(name="Home", button_type="primary", icon ='home-2',align=('end','center'),margin = 0)
         self.menu_button = pn.widgets.Button(name="", button_type="primary", icon ='menu-2',align='center', icon_size= '24px',visible = False, margin = 3)
-        self.create_experiment_button = pn.widgets.Button(name='Plot Data', button_type='primary',  align=('end','center'),icon ='lamp')
+        self.create_experiment_button = pn.widgets.Button(name='Get Started', button_type='primary',  align=('end','center'),icon ='lamp')
         self.create_example_button = pn.widgets.Button(name='Demo', button_type='primary',  align=('end','center'),icon ='device-tv',margin = 0)
         self.titlebar_buttons = pn.Row(self.create_experiment_button,self.create_example_button,self.home_button,self.about_button,align=('end','center'),margin = 0)
     
@@ -429,7 +484,7 @@ class map_dashboard:
         columns_none.append('None')
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
 
-        self.select_value_column_update.options = columns
+        self.select_value_column_update.options = numric_columns
         self.select_chart_x_update.options = columns
         self.select_legend_update.options = columns
         self.select_tooltip.options = columns
@@ -462,7 +517,7 @@ class map_dashboard:
         columns = list(self.dataset.columns)
         columns_none = columns.copy()
         columns_none.append('None')
-        #numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
+        numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
         if not self.skip_map_flag:
             geo_fields = self.geo_handler.get_all_fields()
             value_geo_field = 'GEOID' if 'GEOID' in geo_fields else geo_fields[0]
@@ -474,7 +529,7 @@ class map_dashboard:
 
         self.column_field_selection_compoent.visible = True
         self.select_filter_columns.options = columns
-        self.select_value_column.options = columns
+        self.select_value_column.options = numric_columns
         self.select_year_column.options = columns_none
         self.select_chart_x.options = columns
 
@@ -848,7 +903,6 @@ class map_dashboard:
             maping_overlap = self.geo_handler.check_overlap_locations(self.geo_data_name,set(self.dataset[self.location_column]),self.select_geo_field.value)
             if (maping_overlap<=99 and self.mapping_failure_count==0) or (maping_overlap<=99 and maping_overlap!=self.latest_overlap_mapping):
                 self.loading.visible = False
-                self.create_map_final_button.name = 'Are you Sure ?'
                 pn.state.notifications.error(f'<span style="font-family: sans-serif; font-size: 15px;">Location mapping overlap is {maping_overlap}%</span>',duration=0)
                 self.mapping_failure_count+=1
                 self.latest_overlap_mapping = maping_overlap
@@ -964,8 +1018,11 @@ class map_dashboard:
     def update_other_components(self):
         if self.clustering_module != None:
             self.clustering_module.set_dataset(self.curent_filter_data)
-        if self.clustering_module != None:
-            self.clustering_module.set_dataset(self.curent_filter_data)
+        if self.regression_module != None:
+            self.regression_module.set_dataset(self.curent_filter_data)
+        if self.classification_module != None:
+            self.classification_module.set_dataset(self.curent_filter_data)
+
     def add_clustering_results(self,event):
         #try:
             clusters = self.clustering_module.get_cluster_column()
@@ -991,7 +1048,7 @@ class map_dashboard:
     
     def add_classification_results(self,event):
         #try:
-            classification_results = self.classification_module.get_regression_column()
+            classification_results = self.classification_module.get_classification_column()
             self.dataset['Classification'] = classification_results
             if 'Classification' not in self.select_value_column_update.options:
                 self.select_value_column_update.options.append('Classification')

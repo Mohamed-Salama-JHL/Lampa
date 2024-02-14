@@ -23,10 +23,11 @@ import plotly.express as px
 import plotly.graph_objs as go
 import logging
 from sklearn.preprocessing import MinMaxScaler
-from .num_input import *
 from .gridstack_handler import grid_stack
 from .analysis_page_abstract import analysis_abstract
 from .data_handler import data_handler
+from .adv_panes import *
+
 pd.options.mode.chained_assignment = None 
 logging.basicConfig( level=logging.ERROR,force=True)
 
@@ -44,7 +45,7 @@ class classification_module:
         self.working_dataset = None
         self.output_dataset = None
         self.reduction_dataset = None
-        self.algorithms_list = ['Logistic classification','Decision tree', 'Random forest']
+        self.algorithms_list = ['Logistic Regression','Decision Tree', 'Random Forest']
         self.classification_page = None
         self.actual_fig_flag = False
         self.main_page_created = False
@@ -91,10 +92,10 @@ class classification_module:
         self.create_dataset_setting_component()
         self.create_control_buttons()
         self.create_general_widgets()
-        self.classification_controls = pn.Card(pn.Column(self.algo_settings_card,self.data_settings_card,self.controls_buttons_row,self.loading), title="<h1 style='font-size: 15px;'>classification</h1>", styles={"border": "none", "box-shadow": "none"})
+        self.classification_controls = pn.Card(pn.Column(self.algo_settings_card,self.data_settings_card,self.controls_buttons_row,self.loading), title="<h1 style='font-size: 15px;'>Classification Settings</h1>", styles={"border": "none", "box-shadow": "none"})
     
     def get_grid_stack(self,chart_list):
-        self.grid_stack_handler = grid_stack(chart_list,min_width=950,min_height=2000,ncols=6,nrows = 15, name='classification')
+        self.grid_stack_handler = grid_stack(chart_list,min_width=950,min_height=2000,ncols=6,nrows = 15, name='Classification')
         return self.grid_stack_handler.get_gridstack()
     
 
@@ -103,9 +104,9 @@ class classification_module:
         
         self.feature_importance = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Feature importance', margin=2,width=600),scroll=False,visible = False)
         self.training_data = pn.Column(pn.pane.Plotly(go.Figure().update_layout(template="plotly_white"),name='Training data', margin=2,width=600),scroll=False,visible = False)
-        self.Accuracy = pn.indicators.Number(name='Accuracy', value=0, format='{value}', font_size= '25pt')
-        self.Recall = pn.indicators.Number(name='Recall', value=0, format='{value}', font_size= '25pt')
-        self.Precision = pn.indicators.Number(name='Precision', value=0, format='{value}', font_size= '25pt')
+        self.Accuracy = pn.indicators.Number(name='Accuracy', value=0, format='{value}', font_size= '20pt')
+        self.Recall = pn.indicators.Number(name='Recall', value=0, format='{value}', font_size= '20pt')
+        self.Precision = pn.indicators.Number(name='Precision', value=0, format='{value}', font_size= '20pt')
         self.matrics_values = pn.Row(self.Accuracy,self.Recall,self.Precision)
         chart_list= [self.feature_importance,self.matrics_values] 
         self.classification_main_area = self.get_grid_stack(chart_list)
@@ -113,23 +114,24 @@ class classification_module:
 
     #Need to change
     def create_algorithm_settings_component(self):
-        self.select_algorithm = pn.widgets.Select(name='classification algorithms', options=self.algorithms_list, value ='Logistic classification' )
-        self.select_max_depth = number_input(type='int',title='Max depth: ',tooltip_str='Max depth of the decision tree', start=1, end=10000, step=1, value=3,visible=False)
-        self.select_max_iteration = number_input(type='int',title='Max iteration: ',tooltip_str='Max iteration for logistic regression', start=100, end=100000, step=1, value=100,visible=True)
+        self.select_algorithm = pn.widgets.Select(name='Classification Algorithms: ', options=self.algorithms_list, value ='Logistic Regression' )
+        self.select_max_depth = number_input(type='int',title='Max Depth: ',tooltip_str='Max depth of the decision tree', start=1, end=10000, step=1, value=3,visible=False)
+        self.select_max_iteration = number_input(type='int',title='Max Iteration: ',tooltip_str='Max iteration for logistic regression', start=100, end=100000, step=1, value=100,visible=True)
+        self.select_test_perc = number_input(type='int',title='Testing Data Percentage: ',tooltip_str='The percentage of the dataset designated for testing the model.', start=1, end=100, step=1, value=20,visible=True)
 
-        self.algo_settings_card = pn.Column(self.select_algorithm,self.select_max_iteration.get_item(),self.select_max_depth.get_item())#, title="<h1 style='font-size: 15px;'>Algorithm settings</h1>", styles={"border": "none", "box-shadow": "none"}
+        self.algo_settings_card = pn.Column(self.select_algorithm, self.select_test_perc.get_item(),self.select_max_iteration.get_item(),self.select_max_depth.get_item())#, title="<h1 style='font-size: 15px;'>Algorithm settings</h1>", styles={"border": "none", "box-shadow": "none"}
 
     
     def create_dataset_setting_component(self):
         numric_columns = list(self.dataset.select_dtypes(include=['number']).columns)
-        self.select_classification_columns = pn.widgets.MultiChoice(name= 'classification Columns' ,options=numric_columns)
-        self.select_classification_target = pn.widgets.Select(name= 'classification Target' ,options=numric_columns)
-        self.check_normalization = pn.widgets.Switch(name='Normalization',margin = (0, 10, 10, 10))
-        norm_name = pn.widgets.StaticText(value='Normalization: ',margin = 0)
-        self.data_settings_card = pn.Column(self.select_classification_target,self.select_classification_columns,pn.Column(norm_name,self.check_normalization))#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
+        self.select_classification_columns = pn.widgets.MultiChoice(name= 'Classification Columns: ' ,options=numric_columns)
+        self.select_classification_target = pn.widgets.Select(name= 'Classification Target: ' ,options=numric_columns)
+        self.check_normalization = toggle_input('Normalisation: ','Min-Max normalisation for the features',visible=True)
+        
+        self.data_settings_card = pn.Column(self.select_classification_target,self.select_classification_columns,self.check_normalization.get_item())#, title="<h1 style='font-size: 15px;'>Dataset settings</h1>", styles={"border": "none", "box-shadow": "none"})
 
     def create_control_buttons(self):
-        self.run_classification_button = pn.widgets.Button(name='Run classification', button_type='primary',margin = (5, 3, 5, 15))
+        self.run_classification_button = pn.widgets.Button(name='Run Classification', button_type='primary',margin = (5, 3, 5, 15))
         self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary',margin = (5, 3, 5, 3))
         self.download_classification_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_classification_data_io), filename='classification_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
         self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px',margin = (5, 3, 5, 3))     
@@ -142,11 +144,11 @@ class classification_module:
     def run_classification(self,event=None):
         self.start_classification()    
         self.dataset_preprocessing()
-        if self.select_algorithm.value=='Logistic classification':
+        if self.select_algorithm.value=='Logistic Regression':
             feature_importance,mae,mse,rmse = self.run_lr()
-        elif self.select_algorithm.value=='Decision tree':
+        elif self.select_algorithm.value=='Decision Tree':
             feature_importance,mae,mse,rmse=self.run_dt()
-        elif self.select_algorithm.value=='Random forest':
+        elif self.select_algorithm.value=='Random Forest':
             feature_importance,mae,mse,rmse=self.run_rf()
         self.create_charts_objects(feature_importance,mae,mse,rmse)
         self.end_classification()
@@ -177,11 +179,11 @@ class classification_module:
         else:
             self.working_dataset = self.output_dataset
 
-        if self.check_normalization.value:
+        if self.check_normalization.get_value():
             self.normalize_dataset()
 
         
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.working_dataset, self.target_traing_series, test_size=0.2, random_state=42)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.working_dataset, self.target_traing_series, test_size=(self.select_test_perc.get_value()/100), random_state=42)
 
 
     #show table with nan values of the target if exist
@@ -270,11 +272,11 @@ class classification_module:
         self.select_max_iteration.set_visible(False)
     
     def algo_settings_show(self,event):
-        if self.select_algorithm.value == 'Logistic classification':
+        if self.select_algorithm.value == 'Logistic Regression':
             self.show_lr_settings()
-        elif self.select_algorithm.value == 'Decision tree':
+        elif self.select_algorithm.value == 'Decision Tree':
             self.show_dt_settings()
-        elif self.select_algorithm.value == 'Random forest':
+        elif self.select_algorithm.value == 'Random Forest':
             self.show_rf_settings()
 
     
@@ -353,7 +355,7 @@ class classification_module:
         else:
             self.testing_working_dataset = self.testing_output_dataset
 
-        if self.check_normalization.value:
+        if self.check_normalization.get_value():
             self.testing_working_dataset = self.scaler.transform(self.testing_working_dataset)
 
         self.testing_output_dataset.loc[:, 'classification']=self.model.predict(self.testing_working_dataset)
