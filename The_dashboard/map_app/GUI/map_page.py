@@ -174,18 +174,19 @@ class map_dashboard:
         
     def creating_charts_controls_toggle(self):
         #Remove this button
+        o = {"description": "Map chart"}
         self.setting_charts_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='settings-2', align='center', icon_size='16px')
-        self.map_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='map-2', align='center', icon_size='16px',value=True)
-        self.radar_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-radar', align='center', icon_size='16px')
-        self.heatmap_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='grid-4x4', align='center', icon_size='16px')
-        self.line_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-line', align='center', icon_size='16px')
-        self.bar_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-bar', align='center', icon_size='16px')
-        self.box_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-candle-filled', align='center', icon_size='16px')
-        self.violin_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='brand-drupal', align='center', icon_size='16px')        
-        self.scatter_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='grain', align='center', icon_size='16px')
-        self.pie_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-pie-2', align='center', icon_size='16px')
-        self.sankey_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='chart-sankey', align='center', icon_size='16px')
-        self.text_field_add_show = pn.widgets.Button(button_type='light', button_style='outline', icon='text-plus', align='center', icon_size='16px')
+        self.map_show = pn.widgets.Button(button_type='primary',description='Map Diagram', button_style='solid', icon='map-2', align='center', icon_size='16px',value=True)
+        self.radar_show = pn.widgets.Button(button_type='primary',description='Radar Diagram', button_style='outline', icon='chart-radar', align='center', icon_size='16px')
+        self.heatmap_show = pn.widgets.Button(button_type='primary',description='Heatmap', button_style='outline', icon='grid-4x4', align='center', icon_size='16px')
+        self.line_show = pn.widgets.Button(button_type='primary',description='Line Chart', button_style='outline', icon='chart-line', align='center', icon_size='16px')
+        self.bar_show = pn.widgets.Button(button_type='primary',description='Bar Chart', button_style='outline', icon='chart-bar', align='center', icon_size='16px')
+        self.box_show = pn.widgets.Button(button_type='primary',description='Box Chart', button_style='outline', icon='chart-candle-filled', align='center', icon_size='16px')
+        self.violin_show = pn.widgets.Button(button_type='primary',description='Violin Chart', button_style='outline', icon='brand-drupal', align='center', icon_size='16px')        
+        self.scatter_show = pn.widgets.Button(button_type='primary',description='Scatter Plot', button_style='outline', icon='grain', align='center', icon_size='16px')
+        self.pie_show = pn.widgets.Button(button_type='primary',description='Pie Chart', button_style='outline', icon='chart-pie-2', align='center', icon_size='16px')
+        self.sankey_show = pn.widgets.Button(button_type='primary',description='Sankey Diagram', button_style='outline', icon='chart-sankey', align='center', icon_size='16px')
+        self.text_field_add_show = pn.widgets.Button(button_type='primary',description='Add New Text Field', button_style='solid', icon='text-plus', align='center', icon_size='16px')
         self.text_fields_column = self.text_manager.get_buttons_column()
         self.charts_show_control = pn.Column(self.map_show,self.bar_show,self.line_show,self.box_show,self.violin_show,self.scatter_show,self.pie_show,self.radar_show,self.heatmap_show,self.sankey_show,self.text_field_add_show,self.text_fields_column)
         self.charts_control = pn.WidgetBox(self.charts_show_control,name= 'charts',width=45, height=3050,styles={ "background":"#FAFAFA"})
@@ -1020,55 +1021,119 @@ class map_dashboard:
             self.classification_controls.visible=False
             self.remove_main_tap(self.classification_main_area)
     def show_map_chart(self,event):
-        if self.map_show.value:
+        if self.map_show.clicks%2==0:
+            self.map_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.map_show.button_style='solid'
+
+        if value:
             self.grid_stack_handler.add_chart(self.responsive_map)
         else:
             self.grid_stack_handler.remove_chart(self.responsive_map.name)
 
     def show_bar_chart(self,event):
-        if self.bar_show.value:
+        print(self.bar_show.clicks,self.bar_show.clicks%2==0)
+        if self.bar_show.clicks%2!=0:
+            self.bar_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.bar_show.button_style='solid'
+        print(value)
+        if value:
             self.grid_stack_handler.add_chart(self.bar_chart)
         else:
             self.grid_stack_handler.remove_chart(self.bar_chart.name)
 
     def show_scatter_chart(self,event):
-        if self.scatter_show.value:
+        if self.scatter_show.clicks%2!=0:
+            self.scatter_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.scatter_show.button_style='solid'
+
+        if value:
             self.grid_stack_handler.add_chart(self.scatter_chart)
         else:
             self.grid_stack_handler.remove_chart(self.scatter_chart.name)
 
     def show_box_chart(self,event):
-        if self.box_show.value:
+        if self.box_show.clicks%2!=0:
+            self.box_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.box_show.button_style='solid'
+
+        if value:
             self.grid_stack_handler.add_chart(self.box_chart)
         else:
             self.grid_stack_handler.remove_chart(self.box_chart.name)
 
     def show_pie_chart(self,event):
-        if self.pie_show.value:
+        if self.pie_show.clicks%2!=0:
+            self.pie_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.pie_show.button_style='solid'
+
+        if value:
             self.grid_stack_handler.add_chart(self.pie_chart)
         else:
             self.grid_stack_handler.remove_chart(self.pie_chart.name)
 
     def show_line_chart(self,event):
-        if self.line_show.value:
+        if self.line_show.clicks%2!=0:
+            self.line_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.line_show.button_style='solid'
+
+        if value:
             self.grid_stack_handler.add_chart(self.line_chart)
         else:
             self.grid_stack_handler.remove_chart(self.line_chart.name)
 
     def show_radar_chart(self,event):
-        if self.radar_show.value:
+        if self.radar_show.clicks%2!=0:
+            self.radar_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.radar_show.button_style='solid'
+
+        if value:
             self.grid_stack_handler.add_chart(self.radar_chart)
         else:
             self.grid_stack_handler.remove_chart(self.radar_chart.name)
 
     def show_heatmap_chart(self,event):
-        if self.heatmap_show.value:
+        if self.heatmap_show.clicks%2!=0:
+            self.heatmap_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.heatmap_show.button_style='solid'
+
+        if value:
             self.grid_stack_handler.add_chart(self.heatmap_chart)
         else:
             self.grid_stack_handler.remove_chart(self.heatmap_chart.name)
 
     def show_sankey_chart(self,event):
-        if self.sankey_show.value:
+        if self.sankey_show.clicks%2!=0:
+            self.sankey_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.sankey_show.button_style='solid'
+
+        if value:
             self.grid_stack_handler.add_chart(self.sankey_chart)
         else:
             self.grid_stack_handler.remove_chart(self.sankey_chart.name)

@@ -40,7 +40,13 @@ class text_field_manger:
 
     def check_button(self,event):
         txt_name = event.obj.name
-        show_value = event.obj.value
+        #show_value = event.obj.value
+        if event.obj.clicks%2==0:
+            event.obj.button_style='outline'
+            show_value= False
+        else:
+            show_value = True
+            event.obj.button_style='solid'
         try:
             if show_value:
                 txt_field_index = int(txt_name[1:]) -1
@@ -65,9 +71,14 @@ class text_field_manger:
         return self.text_fields
     
     def create_new_text_field(self,place_holder_text ='Write your description'):
+        format_toolbar = [
+                                [{ 'header': 1 }, { 'header': 2 }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['link', 'image']
+                                ]
         self.cur_text_fields+=1
-        new_text_field = pn.widgets.TextEditor(mode='bubble', value=place_holder_text, margin=(40, 0, 0, 0), height=200, width=400,name=f'T{self.cur_text_fields}')
-        new_button = pn.widgets.Toggle(button_type='light', button_style='solid', align='center',name=f'T{self.cur_text_fields}',value=True)
+        new_text_field = pn.widgets.TextEditor(mode='bubble', value=place_holder_text, margin=(40, 0, 0, 0), height=200, width=400,name=f'T{self.cur_text_fields}',toolbar = format_toolbar )
+        new_button = pn.widgets.Button(button_type='primary', button_style='solid', align='center',name=f'T{self.cur_text_fields}',value=True,description=f'Text Field {self.cur_text_fields}')
         self.text_fields.append(new_text_field)
         self.buttons_column.append(new_button)
         self.bend_text_fields_buttons(new_button)
