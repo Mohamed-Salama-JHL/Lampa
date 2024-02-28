@@ -5,7 +5,6 @@ import numpy as np
 from .helper_functions import *
 class geojson_handler:
     def __init__(self):
-        #C:/James Hutton/Syngenta project/Lampa/The_dashboard/map_app/GUI/geojsons
         #self.folder_name = 'C:/James Hutton/Syngenta project/Lampa/The_dashboard/map_app/GUI/geojsons'
         self.folder_name = './map_app/GUI/geojsons'
         self.selected_map = None
