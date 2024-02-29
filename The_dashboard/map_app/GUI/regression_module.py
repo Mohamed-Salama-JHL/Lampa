@@ -129,7 +129,7 @@ class regression_module:
         self.run_regression_button = pn.widgets.Button(name='Run Regression', button_type='primary',margin = (5, 3, 5, 15))
         self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary',margin = (5, 3, 5, 7))
         self.download_regression_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_regression_data_io), filename='regression_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
-        self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px',margin = (5, 3, 5, 7))     
+        self.freeze_dashboard = pn.widgets.Button(button_type='primary',description='Freeze/Unfreeze the diagrams in the regression dashboard', button_style='outline', icon='snowflake', align='center', icon_size='14px',margin = (5, 3, 5, 7))     
         self.test_data_input = pn.widgets.FileInput(name= 'Upload Testing', accept='.csv,.xlsx',design=Native,margin = (10, 25, 10, 25))
         self.controls_buttons_row = pn.Column(pn.Row(self.run_regression_button,self.update_results_button,self.freeze_dashboard,sizing_mode='stretch_width'),self.test_data_input,self.download_regression_data_button,sizing_mode='stretch_width')
     
@@ -248,7 +248,14 @@ class regression_module:
 
     
     def freezing_dashboard(self,event):
-        dynamic_flag = not self.freeze_dashboard.value
+        if self.freeze_dashboard.clicks%2!=0:
+            self.freeze_dashboard.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.freeze_dashboard.button_style='solid'
+
+        dynamic_flag = not value
         self.grid_stack_handler.dynamic(dynamic_flag)
 
     def bend_components_actions(self):
