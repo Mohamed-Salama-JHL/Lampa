@@ -177,7 +177,7 @@ class map_dashboard:
         o = {"description": "Map chart"}
         self.setting_charts_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='settings-2', align='center', icon_size='16px')
         self.map_show = pn.widgets.Button(button_type='primary',description='Map Diagram', button_style='solid', icon='map-2', align='center', icon_size='16px',value=True)
-        self.radar_show = pn.widgets.Button(button_type='primary',description='Radar Diagram', button_style='outline', icon='chart-radar', align='center', icon_size='16px')
+        self.radar_show = pn.widgets.Button(button_type='primary',description='Radar Chart', button_style='outline', icon='chart-radar', align='center', icon_size='16px')
         self.heatmap_show = pn.widgets.Button(button_type='primary',description='Heatmap', button_style='outline', icon='grid-4x4', align='center', icon_size='16px')
         self.line_show = pn.widgets.Button(button_type='primary',description='Line Chart', button_style='outline', icon='chart-line', align='center', icon_size='16px')
         self.bar_show = pn.widgets.Button(button_type='primary',description='Bar Chart', button_style='outline', icon='chart-bar', align='center', icon_size='16px')
@@ -204,7 +204,7 @@ class map_dashboard:
         self.year_range = pn.widgets.IntRangeSlider(name='Year',start=1997, end=2017, value=(1997, 2017), step=1, styles=custom_style, stylesheets=[stylesheet], design=self.design, visible=False)
         self.update_map_button = pn.widgets.Button(name='Update Dashboard', button_type='primary', design=self.design)
         self.reset_filters_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
-        self.freeze_show = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px')
+        self.freeze_show = pn.widgets.Button(button_type='primary',description='Freeze/Unfreeze the diagrams in the dashboard', button_style='outline', icon='snowflake', align='center', icon_size='14px')
 
         self.button_row = pn.Row(self.update_map_button,self.reset_filters_button,self.freeze_show, design=self.design)
     
@@ -1139,13 +1139,27 @@ class map_dashboard:
             self.grid_stack_handler.remove_chart(self.sankey_chart.name)
 
     def show_violin_chart(self,event):
-        if self.violin_show.value:
+        if self.violin_show.clicks%2!=0:
+            self.violin_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.violin_show.button_style='solid'
+
+        if value:
             self.grid_stack_handler.add_chart(self.violin_chart)
         else:
             self.grid_stack_handler.remove_chart(self.violin_chart.name)
 
     def freeze_handler(self,event):
-        dynamic_flag = not self.freeze_show.value
+        if self.freeze_show.clicks%2!=0:
+            self.freeze_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.freeze_show.button_style='solid'
+
+        dynamic_flag = not value
         self.grid_stack_handler.dynamic(dynamic_flag)
 
 
