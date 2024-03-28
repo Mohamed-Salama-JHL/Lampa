@@ -1,6 +1,7 @@
 import pandas as pd
 import plotly.graph_objects as go
 
+
 class SankeyPlotter:
     def __init__(self, dataset=None, source_column=None, target_column=None, values_column=None):
         self.dataset = dataset
@@ -31,13 +32,35 @@ class SankeyPlotter:
         sankey_data = self.dataset.groupby([self.source_column, self.target_column])[self.values_column].sum().reset_index()
 
         unique_source_target,sankey_df = self.preprocess_sankey_data(sankey_data)
-        
+        color_palette = [
+        '#00429d', '#882255', '#44aa99', '#cc6677', '#332288', 
+        '#ddcc77', '#117733', '#88ccee', '#aa4499', '#661100', 
+        '#6699cc', '#aa4499', '#44aa99', '#ee6677', '#aa8822', 
+        '#882255', '#6699cc', '#4477aa', '#332288', '#88ccee', 
+        '#44aa99', '#117733', '#ddcc77', '#ee6677', '#99cc66', 
+        '#66ccee', '#aa4499', '#332288', '#88ccee', '#117733', 
+        '#ddcc77', '#cc6677', '#44aa99', '#88ccee', '#117733', 
+        '#88ccee', '#44aa99', '#117733', '#ddcc77', '#cc6677', 
+        '#4477aa', '#332288', '#88ccee', '#117733', '#ddcc77', 
+        '#ee6677', '#99cc66', '#66ccee', '#aa4499', '#332288', 
+        '#88ccee', '#44aa99', '#117733', '#ddcc77', '#ee6677', 
+        '#aa8822', '#882255', '#6699cc', '#4477aa', '#332288', 
+        '#88ccee', '#44aa99', '#117733', '#ddcc77', '#ee6677', 
+        '#aa4499', '#332288', '#88ccee', '#117733', '#ddcc77', 
+        '#cc6677', '#44aa99', '#88ccee', '#117733', '#88ccee', 
+        '#44aa99', '#117733', '#ddcc77', '#cc6677', '#4477aa', 
+        '#332288', '#88ccee', '#117733', '#ddcc77', '#ee6677', 
+        '#99cc66', '#66ccee', '#aa4499', '#332288', '#88ccee', 
+        '#44aa99', '#117733', '#ddcc77', '#ee6677', '#aa8822', 
+        '#882255', '#6699cc', '#4477aa'
+    ]*200
         fig = go.Figure(data=[go.Sankey(valueformat='r',
             node=dict(
                 pad=15,
                 thickness=20,
                 line=dict(color='black', width=0.5),
-                label=unique_source_target
+                label=unique_source_target,
+                color=color_palette
             ),
             link=dict(
                 source=sankey_df[self.source_column],
@@ -46,7 +69,7 @@ class SankeyPlotter:
             )
         )])
 
-        fig.update_layout(title_text="Sankey Diagram",
+        fig.update_layout(
                           font_size=10,
                           autosize=True,
                           margin=dict(l=20, r=20, t=20, b=20),

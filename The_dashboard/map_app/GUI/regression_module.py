@@ -220,7 +220,7 @@ class regression_module:
 
         feature_names = [i for i in self.output_dataset.columns if i != 'Regression']
         coeff_df = pd.DataFrame({'Feature': feature_names, 'Coefficient': feature_importance})
-        feature_importance_fig = px.bar(coeff_df, x='Feature', y='Coefficient', title='Linear Regression Coefficients',template="plotly_white").update_layout(margin=dict(l=20, r=20, t=50, b=5),)
+        feature_importance_fig = px.bar(coeff_df, x='Feature', y='Coefficient', title='Feature importance',template="plotly_white").update_layout(margin=dict(l=20, r=20, t=50, b=5),)
         
         self.MAE.value = round(mae, 3)
         self.MSE.value = round(mse, 3)
