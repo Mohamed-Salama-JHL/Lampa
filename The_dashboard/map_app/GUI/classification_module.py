@@ -246,7 +246,7 @@ class classification_module:
 
         
         coeff_df = pd.DataFrame({'Feature': feature_names, 'Coefficient': feature_importance})
-        feature_importance_fig = px.bar(coeff_df, x='Feature', y='Coefficient', title='Linear classification Coefficients',template="plotly_white").update_layout(margin=dict(l=20, r=20, t=50, b=5),)
+        feature_importance_fig = px.bar(coeff_df, x='Feature', y='Coefficient', title='Feature importance',template="plotly_white").update_layout(margin=dict(l=20, r=20, t=50, b=5),)
         
         self.Accuracy.value = round(accuracy, 3)
         self.Recall.value = round(recall, 3)
