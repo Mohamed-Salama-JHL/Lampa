@@ -130,7 +130,7 @@ class clustering_module:
         self.run_clustering_button = pn.widgets.Button(name='Run Clustering', button_type='primary')
         self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary')
         self.download_clustered_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_clustered_data_io), filename='Clustered_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
-        self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px')     
+        self.freeze_dashboard = pn.widgets.Button(button_type='primary',description='Freeze/Unfreeze the diagrams in the clustering dashboard', button_style='outline', icon='snowflake', align='center', icon_size='14px')     
         self.controls_buttons_row = pn.Column(pn.Row(self.run_clustering_button,self.update_results_button,self.freeze_dashboard,sizing_mode='stretch_width'),self.download_clustered_data_button,sizing_mode='stretch_width')
     
     def create_general_widgets(self):
@@ -318,7 +318,14 @@ class clustering_module:
             self.show_agg_settings()
     
     def freezing_dashboard(self,event):
-        dynamic_flag = not self.freeze_dashboard.value
+        if self.freeze_dashboard.clicks%2!=0:
+            self.freeze_dashboard.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.freeze_dashboard.button_style='solid'
+
+        dynamic_flag = not value
         self.grid_stack_handler.dynamic(dynamic_flag)
 
     def bend_components_actions(self):

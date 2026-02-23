@@ -177,7 +177,7 @@ class map_dashboard:
         o = {"description": "Map chart"}
         self.setting_charts_show = pn.widgets.Toggle(button_type='light', button_style='solid', icon='settings-2', align='center', icon_size='16px')
         self.map_show = pn.widgets.Button(button_type='primary',description='Map Diagram', button_style='solid', icon='map-2', align='center', icon_size='16px',value=True)
-        self.radar_show = pn.widgets.Button(button_type='primary',description='Radar Diagram', button_style='outline', icon='chart-radar', align='center', icon_size='16px')
+        self.radar_show = pn.widgets.Button(button_type='primary',description='Radar Chart', button_style='outline', icon='chart-radar', align='center', icon_size='16px')
         self.heatmap_show = pn.widgets.Button(button_type='primary',description='Heatmap', button_style='outline', icon='grid-4x4', align='center', icon_size='16px')
         self.line_show = pn.widgets.Button(button_type='primary',description='Line Chart', button_style='outline', icon='chart-line', align='center', icon_size='16px')
         self.bar_show = pn.widgets.Button(button_type='primary',description='Bar Chart', button_style='outline', icon='chart-bar', align='center', icon_size='16px')
@@ -204,12 +204,12 @@ class map_dashboard:
         self.year_range = pn.widgets.IntRangeSlider(name='Year',start=1997, end=2017, value=(1997, 2017), step=1, styles=custom_style, stylesheets=[stylesheet], design=self.design, visible=False)
         self.update_map_button = pn.widgets.Button(name='Update Dashboard', button_type='primary', design=self.design)
         self.reset_filters_button = pn.widgets.Button(name='Reset Filters', button_type='primary', design=self.design)
-        self.freeze_show = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px')
+        self.freeze_show = pn.widgets.Button(button_type='primary',description='Freeze/Unfreeze the diagrams in the dashboard', button_style='outline', icon='snowflake', align='center', icon_size='14px')
 
         self.button_row = pn.Row(self.update_map_button,self.reset_filters_button,self.freeze_show, design=self.design)
     
     def creating_axes_controls(self):
-        self.select_value_column_update_tooltip = select_input('Initial Value Column (Y-axis): ','Choose the initial column for the y-axis in charts and values on the map if exist.')
+        self.select_value_column_update_tooltip = select_input('Value Column (Y-axis): ','Choose the initial column for the y-axis in charts and values on the map if exist.')
         self.select_chart_x_update_tooltip = select_input('Charts Field (X-axis): ','Choose the initial column for the y-axis in charts and values on the map if exist.')
         self.select_legend_update_tooltip = select_input('Legend: ','Choose the initial column for the y-axis in charts and values on the map if exist.')
         
@@ -535,16 +535,37 @@ class map_dashboard:
         fig_bar = None
         fig_pie = None
         fig_scatter = None
+        cud_palette = ['#0072B2','#E69F00', '#56B4E9', '#009E73', '#F0E442' , '#CC79A7','#D55E00'
+                       ,'#00429d', '#882255', '#44aa99', '#cc6677', '#332288', 
+                        '#ddcc77', '#117733', '#88ccee', '#aa4499', '#661100', 
+                        '#6699cc', '#aa4499', '#44aa99', '#ee6677', '#aa8822', 
+                        '#882255', '#6699cc', '#4477aa', '#332288', '#88ccee', 
+                        '#44aa99', '#117733', '#ddcc77', '#ee6677', '#99cc66', 
+                        '#66ccee', '#aa4499', '#332288', '#88ccee', '#117733', 
+                        '#ddcc77', '#cc6677', '#44aa99', '#88ccee', '#117733', 
+                        '#88ccee', '#44aa99', '#117733', '#ddcc77', '#cc6677', 
+                        '#4477aa', '#332288', '#88ccee', '#117733', '#ddcc77', 
+                        '#ee6677', '#99cc66', '#66ccee', '#aa4499', '#332288', 
+                        '#88ccee', '#44aa99', '#117733', '#ddcc77', '#ee6677', 
+                        '#aa8822', '#882255', '#6699cc', '#4477aa', '#332288', 
+                        '#88ccee', '#44aa99', '#117733', '#ddcc77', '#ee6677', 
+                        '#aa4499', '#332288', '#88ccee', '#117733', '#ddcc77', 
+                        '#cc6677', '#44aa99', '#88ccee', '#117733', '#88ccee', 
+                        '#44aa99', '#117733', '#ddcc77', '#cc6677', '#4477aa', 
+                        '#332288', '#88ccee', '#117733', '#ddcc77', '#ee6677', 
+                        '#99cc66', '#66ccee', '#aa4499', '#332288', '#88ccee', 
+                        '#44aa99', '#117733', '#ddcc77', '#ee6677', '#aa8822', 
+                        '#882255', '#6699cc', '#4477aa']
 
         if isinstance(filtered_data,pd.DataFrame):
             color_column = None if self.chart_column == self.legend_column else self.legend_column
-            fig_bar = px.histogram(filtered_data, x=self.chart_column, y=self.value_column, color=color_column,barmode="group", template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
-            fig_pie = px.pie(filtered_data, values=self.value_column, names=self.chart_column,template="plotly_white").update_layout(margin=dict(l=20, r=20, t=20, b=20),)
-            fig_scatter = px.scatter(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
-            fig_line = px.line(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
-            fig_box = px.box(row_filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
-            fig_violin = px.violin(row_filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=5, b=5),)
-            fig_radar = px.line_polar(filtered_data, theta=self.chart_column, r=self.value_column, color=color_column, line_close=True, template="plotly_white").update_layout(margin=dict(l=20, r=20, t=20, b=20),)
+            fig_bar = px.histogram(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, barmode="group", template="plotly_white", color_discrete_sequence=cud_palette).update_layout(margin=dict(l=20, r=20, t=5, b=5))
+            fig_pie = px.pie(filtered_data, values=self.value_column, names=self.chart_column, template="plotly_white", color_discrete_sequence=cud_palette).update_layout(margin=dict(l=20, r=20, t=20, b=20))
+            fig_scatter = px.scatter(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white", color_discrete_sequence=cud_palette).update_layout(margin=dict(l=20, r=20, t=5, b=5))
+            fig_line = px.line(filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white", color_discrete_sequence=cud_palette).update_layout(margin=dict(l=20, r=20, t=5, b=5))
+            fig_box = px.box(row_filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white", color_discrete_sequence=cud_palette).update_layout(margin=dict(l=20, r=20, t=5, b=5))
+            fig_violin = px.violin(row_filtered_data, x=self.chart_column, y=self.value_column, color=color_column, template="plotly_white", color_discrete_sequence=cud_palette).update_layout(margin=dict(l=20, r=20, t=5, b=5))
+            fig_radar = px.line_polar(filtered_data, theta=self.chart_column, r=self.value_column, color=color_column, line_close=True, template="plotly_white", color_discrete_sequence=cud_palette).update_layout(margin=dict(l=20, r=20, t=20, b=20))
             if  isinstance(filtered_data_heatmap,pd.DataFrame):
                 fig_heatmap = px.imshow(filtered_data_heatmap,labels=dict(color="Value"),x=filtered_data_heatmap.columns,y=filtered_data_heatmap.index, text_auto=True, aspect="auto", template="plotly_white").update_layout(margin=dict(l=20, r=20, t=20, b=20),)
             else:
@@ -931,29 +952,34 @@ class map_dashboard:
             self.dataset['Clusters'] = clusters
             if 'Clusters' not in self.select_value_column_update.options:
                 self.select_value_column_update.options.append('Clusters')
-                self.select_heatmap_fields.options.append('Clusters')
+                #self.select_heatmap_fields.options.append('Clusters')
                 self.axes_settings_card.clear()
-                self.axes_settings_card.objects = [self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields]
-
+                self.special_charts_settings_card.clear()
+                self.axes_settings_card.objects = [self.select_value_column_update_tooltip.get_item(),self.select_chart_x_update_tooltip.get_item(),self.select_legend_update_tooltip.get_item()]
+                self.special_charts_settings_card.objects = [self.select_heatmap_fields_tooltip.get_item(), self.select_sankey_source_tooltip.get_item(),self.select_sankey_target_tooltip.get_item()]
     def add_regression_results(self,event):
         #try:
             regression_results = self.regression_module.get_regression_column()
             self.dataset['Regression'] = regression_results
             if 'Regression' not in self.select_value_column_update.options:
                 self.select_value_column_update.options.append('Regression')
-                self.select_heatmap_fields.options.append('Regression')
+                #self.select_heatmap_fields.options.append('Regression')
                 self.axes_settings_card.clear()
-                self.axes_settings_card.objects = [self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields]
-    
+                self.special_charts_settings_card.clear()
+                self.axes_settings_card.objects = [self.select_value_column_update_tooltip.get_item(),self.select_chart_x_update_tooltip.get_item(),self.select_legend_update_tooltip.get_item()]
+                self.special_charts_settings_card.objects = [self.select_heatmap_fields_tooltip.get_item(), self.select_sankey_source_tooltip.get_item(),self.select_sankey_target_tooltip.get_item()]
+
     def add_classification_results(self,event):
         #try:
             classification_results = self.classification_module.get_classification_column()
             self.dataset['Classification'] = classification_results
             if 'Classification' not in self.select_value_column_update.options:
                 self.select_value_column_update.options.append('Classification')
-                self.select_heatmap_fields.options.append('Classification')
+                #self.select_heatmap_fields.options.append('Classification')
                 self.axes_settings_card.clear()
-                self.axes_settings_card.objects = [self.select_value_column_update,self.select_chart_x_update,self.select_legend_update,self.select_heatmap_fields]
+                self.special_charts_settings_card.clear()
+                self.axes_settings_card.objects = [self.select_value_column_update_tooltip.get_item(),self.select_chart_x_update_tooltip.get_item(),self.select_legend_update_tooltip.get_item()]
+                self.special_charts_settings_card.objects = [self.select_heatmap_fields_tooltip.get_item(), self.select_sankey_source_tooltip.get_item(),self.select_sankey_target_tooltip.get_item()]
 
     def clustering_module_handeling(self,event):
         if self.clustering_show.value:
@@ -1139,13 +1165,27 @@ class map_dashboard:
             self.grid_stack_handler.remove_chart(self.sankey_chart.name)
 
     def show_violin_chart(self,event):
-        if self.violin_show.value:
+        if self.violin_show.clicks%2!=0:
+            self.violin_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.violin_show.button_style='solid'
+
+        if value:
             self.grid_stack_handler.add_chart(self.violin_chart)
         else:
             self.grid_stack_handler.remove_chart(self.violin_chart.name)
 
     def freeze_handler(self,event):
-        dynamic_flag = not self.freeze_show.value
+        if self.freeze_show.clicks%2!=0:
+            self.freeze_show.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.freeze_show.button_style='solid'
+
+        dynamic_flag = not value
         self.grid_stack_handler.dynamic(dynamic_flag)
 
 

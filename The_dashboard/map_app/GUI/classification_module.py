@@ -134,7 +134,7 @@ class classification_module:
         self.run_classification_button = pn.widgets.Button(name='Run Classification', button_type='primary',margin = (5, 3, 5, 15))
         self.update_results_button =  pn.widgets.Button(name='Update Results', button_type='primary',margin = (5, 3, 5, 3))
         self.download_classification_data_button = pn.widgets.FileDownload(callback=pn.bind(self.get_classification_data_io), filename='classification_data.csv', label = 'Download Dataset',align = 'center',button_style='outline',button_type='primary',height=40 )
-        self.freeze_dashboard = pn.widgets.Toggle(button_type='primary', button_style='outline', icon='snowflake', align='center', icon_size='14px',margin = (5, 3, 5, 3))     
+        self.freeze_dashboard = pn.widgets.Button(button_type='primary',description='Freeze/Unfreeze the diagrams in the classification dashboard', button_style='outline', icon='snowflake', align='center', icon_size='14px',margin = (5, 3, 5, 3))     
         self.test_data_input = pn.widgets.FileInput(name= 'Upload Testing', accept='.csv,.xlsx',design=Native,margin = (10, 25, 10, 25))
         self.controls_buttons_row = pn.Column(pn.Row(self.run_classification_button,self.update_results_button,self.freeze_dashboard,sizing_mode='stretch_width'),self.test_data_input,self.download_classification_data_button,sizing_mode='stretch_width')
     
@@ -246,7 +246,7 @@ class classification_module:
 
         
         coeff_df = pd.DataFrame({'Feature': feature_names, 'Coefficient': feature_importance})
-        feature_importance_fig = px.bar(coeff_df, x='Feature', y='Coefficient', title='Linear classification Coefficients',template="plotly_white").update_layout(margin=dict(l=20, r=20, t=50, b=5),)
+        feature_importance_fig = px.bar(coeff_df, x='Feature', y='Coefficient', title='Feature importance',template="plotly_white").update_layout(margin=dict(l=20, r=20, t=50, b=5),)
         
         self.Accuracy.value = round(accuracy, 3)
         self.Recall.value = round(recall, 3)
@@ -281,7 +281,14 @@ class classification_module:
 
     
     def freezing_dashboard(self,event):
-        dynamic_flag = not self.freeze_dashboard.value
+        if self.freeze_dashboard.clicks%2!=0:
+            self.freeze_dashboard.button_style='outline'
+            value= False
+        else:
+            value = True
+            self.freeze_dashboard.button_style='solid'
+
+        dynamic_flag = not value
         self.grid_stack_handler.dynamic(dynamic_flag)
 
     def bend_components_actions(self):
