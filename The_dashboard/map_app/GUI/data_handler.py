@@ -16,7 +16,17 @@ class data_handler:
         if self.file_name!=None:
             if self.file_name.split('.')[-1]=='csv':
                 string_io = StringIO(self.raw_data.decode("utf8"))
-                dataset = pd.read_csv(string_io,dtype={self.location_column:'string'})
+                
+                try:
+                    dataset = pd.read_csv(string_io,dtype={self.location_column:'string', 'Metric':'category', 'Period':'category', 'value':'float32', 'obs_value':'float32', 'Change':'float32'})
+                    print('First attempt successful in reading csv with specified dtypes')
+                except Exception as e:
+                    try:
+                        dataset = pd.read_csv(string_io,dtype={self.location_column:'string', 'Metric':'category', 'Period':'category', 'proj_value':'float32', 'obs_value':'float32', 'Change':'float32','Member':'category'})
+                        print('Second attempt successful in reading csv with alternative dtypes')
+                    except Exception as e:
+                        dataset = pd.read_csv(string_io,dtype={self.location_column:'string'})
+                        print('Failed to read csv with specified dtypes, read without dtypes. Error:', e)
             elif self.file_name.split('.')[-1]=='xlsx':
                 string_io = BytesIO(self.raw_data)
                 dataset = pd.read_excel(string_io,dtype={self.location_column:'string'})

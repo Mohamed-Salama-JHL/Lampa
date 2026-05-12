@@ -648,15 +648,15 @@ class map_dashboard:
                 fill_opacity=transparency_level,
                 nan_fill_color="White",
                 nan_fill_opacity=0,
-                line_opacity=0.2,
+                line_opacity=0,
                 nan_line_opacity=0,
                 overlay=False
             ).add_to(m)
 
             style_function = lambda x: {'fillColor': '#ffffff', 
                                         'color':'#000000', 
-                                        'fillOpacity': 0.1, 
-                                        'weight': 0.1}
+                                        'fillOpacity': 0, 
+                                        'weight': 0}
             highlight_function = lambda x: {'fillColor': '#000000', 
                                             'color':'#000000', 
                                             'fillOpacity': 0.50, 
