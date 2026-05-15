@@ -30,6 +30,13 @@ class grid_stack:
             pn.state.execute(update_grid)
             return True
         return False
+
+    def add_chart_direct(self,chart_obj,x_size=3,y_size=2,reverse=False):
+        place = self.find_place(self.gstack.grid,x_size,y_size,reverse)
+        if place:
+            self.gstack[place[1]:place[1]+y_size, place[0]:place[0]+x_size] = chart_obj
+            return True
+        return False
         
     def find_place(self,grid,x_size=3,y_size=2,reverse=False):
         rows = len(grid)
@@ -86,3 +93,24 @@ class grid_stack:
     def dynamic(self,flag=True):
         self.gstack.allow_drag = flag
         self.gstack.allow_resize = flag
+
+    def enable_resize(self):
+        self.gstack.allow_resize = False
+        self.gstack.allow_resize = True
+
+    def rebuild_with_charts(self, charts_list, x_size=3, y_size=2):
+        new_gstack = GridStack(
+            sizing_mode='stretch_both', min_height=self.min_height, mode='error',
+            ncols=self.ncols, nrows=self.nrows, name='Dashboard',
+            visible=True, min_width=self.min_width,
+        )
+        # Populate items BEFORE adding to the layout so the browser renders the
+        # grid fully-populated on first load — gridstack.js then initialises with
+        # all items present and correctly attaches resize/drag handles.
+        for chart_obj in charts_list:
+            place = self.find_place(new_gstack.grid, x_size, y_size)
+            if place:
+                new_gstack[place[1]:place[1]+y_size, place[0]:place[0]+x_size] = chart_obj
+        self.gstack = new_gstack
+        self.external_gstack.clear()
+        self.external_gstack.append(new_gstack)

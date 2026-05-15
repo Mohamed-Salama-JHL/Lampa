@@ -30,6 +30,7 @@ from .classification_module import *
 from .adv_panes import multiselect_input,select_input
 from .text_field_module import *
 from .static_pages import *
+from .session_handler import save_session, load_session
 
 logging.basicConfig( level=logging.ERROR,force=True)
 
@@ -127,7 +128,8 @@ class map_dashboard:
 
     def create_home_page(self):
         home_page_obj = home_page()
-        self.create_experiment_button_page,self.create_example_button_page = home_page_obj.get_buttons()
+        self.create_experiment_button_page, self.create_example_button_page, \
+            self.continue_session_button_page, self.session_file_input_page = home_page_obj.get_buttons()
         self.home_page_component =  home_page_obj.get_page()
         
     def uploading_dataset_components(self):
@@ -253,7 +255,13 @@ class map_dashboard:
         self.menu_button = pn.widgets.Button(name="", button_type="primary", icon ='menu-2',align='center', icon_size= '24px',visible = False, margin = 3)
         self.create_experiment_button = pn.widgets.Button(name='Get Started', button_type='primary',  align=('end','center'),icon ='lamp')
         self.create_example_button = pn.widgets.Button(name='Demo', button_type='primary',  align=('end','center'),icon ='device-tv',margin = 0)
-        self.titlebar_buttons = pn.Row(self.create_experiment_button,self.create_example_button,self.home_button,self.about_button,align=('end','center'),margin = 0)
+        self.save_session_button = pn.widgets.FileDownload(
+            label='Save Session', icon='device-floppy',
+            button_type='primary', button_style='solid',
+            callback=self._build_session_zip, filename='lampa_session.zip',
+            align=('end', 'center'), margin=0, visible=False,
+        )
+        self.titlebar_buttons = pn.Row(self.create_experiment_button,self.create_example_button,self.save_session_button,self.home_button,self.about_button,align=('end','center'),margin = 0)
         
 
     def create_main_area_widgets(self):
@@ -473,6 +481,7 @@ class map_dashboard:
         self.home_page_active = True
         self.create_experiment_button.visible = False
         self.example_page.visible= False
+        self.save_session_button.visible = True
     def show_main_page(self):
         if self.home_page_active:
             self.map_area.visible = True
@@ -491,12 +500,13 @@ class map_dashboard:
         self.example_page.visible= False
     def show_home_page(self):
         self.map_area.visible = False
-        self.controls.visible = False 
+        self.controls.visible = False
         self.about_page_component.visible = False
         self.home_page_component.visible = True
         self.menu_button.disabled = False
         self.example_page.visible= False
         self.create_experiment_button.visible = True
+        self.save_session_button.visible = False
     def show_video_example(self,event):
         self.example_page.visible= True
         self.about_page_component.visible = False
@@ -632,7 +642,7 @@ class map_dashboard:
         base_map = 'OpenStreetMap' if base_map not in self.map_base_option else base_map
         m = folium.Map(location=self.geo_handler.get_center_point(), zoom_start=self.geo_handler.get_zoom_start(),width='100%', height='100%',tiles=base_map)
  
-        if isinstance(self.dataset,pd.DataFrame) and features:
+        if isinstance(self.dataset,pd.DataFrame) and features is not None:
             final_data = self.create_filtered_data_map(features,agg,year_range)
             cur_geo_data,cur_zoom,cur_center_point = self.geo_handler.get_cur_map_specs(set(final_data[self.location_column]))
             m = folium.Map(location=cur_center_point, zoom_start=cur_zoom,width='100%', height='100%',tiles=base_map)
@@ -1047,150 +1057,222 @@ class map_dashboard:
             self.classification_controls.visible=False
             self.remove_main_tap(self.classification_main_area)
     def show_map_chart(self,event):
-        if self.map_show.clicks%2==0:
-            self.map_show.button_style='outline'
-            value= False
-        else:
-            value = True
-            self.map_show.button_style='solid'
-
-        if value:
-            self.grid_stack_handler.add_chart(self.responsive_map)
-        else:
+        if self.map_show.button_style == 'solid':
+            self.map_show.button_style = 'outline'
             self.grid_stack_handler.remove_chart(self.responsive_map.name)
+        else:
+            self.map_show.button_style = 'solid'
+            self.grid_stack_handler.add_chart(self.responsive_map)
 
     def show_bar_chart(self,event):
-        print(self.bar_show.clicks,self.bar_show.clicks%2==0)
-        if self.bar_show.clicks%2!=0:
-            self.bar_show.button_style='outline'
-            value= False
-        else:
-            value = True
-            self.bar_show.button_style='solid'
-        print(value)
-        if value:
-            self.grid_stack_handler.add_chart(self.bar_chart)
-        else:
+        if self.bar_show.button_style == 'solid':
+            self.bar_show.button_style = 'outline'
             self.grid_stack_handler.remove_chart(self.bar_chart.name)
+        else:
+            self.bar_show.button_style = 'solid'
+            self.grid_stack_handler.add_chart(self.bar_chart)
 
     def show_scatter_chart(self,event):
-        if self.scatter_show.clicks%2!=0:
-            self.scatter_show.button_style='outline'
-            value= False
-        else:
-            value = True
-            self.scatter_show.button_style='solid'
-
-        if value:
-            self.grid_stack_handler.add_chart(self.scatter_chart)
-        else:
+        if self.scatter_show.button_style == 'solid':
+            self.scatter_show.button_style = 'outline'
             self.grid_stack_handler.remove_chart(self.scatter_chart.name)
+        else:
+            self.scatter_show.button_style = 'solid'
+            self.grid_stack_handler.add_chart(self.scatter_chart)
 
     def show_box_chart(self,event):
-        if self.box_show.clicks%2!=0:
-            self.box_show.button_style='outline'
-            value= False
-        else:
-            value = True
-            self.box_show.button_style='solid'
-
-        if value:
-            self.grid_stack_handler.add_chart(self.box_chart)
-        else:
+        if self.box_show.button_style == 'solid':
+            self.box_show.button_style = 'outline'
             self.grid_stack_handler.remove_chart(self.box_chart.name)
+        else:
+            self.box_show.button_style = 'solid'
+            self.grid_stack_handler.add_chart(self.box_chart)
 
     def show_pie_chart(self,event):
-        if self.pie_show.clicks%2!=0:
-            self.pie_show.button_style='outline'
-            value= False
-        else:
-            value = True
-            self.pie_show.button_style='solid'
-
-        if value:
-            self.grid_stack_handler.add_chart(self.pie_chart)
-        else:
+        if self.pie_show.button_style == 'solid':
+            self.pie_show.button_style = 'outline'
             self.grid_stack_handler.remove_chart(self.pie_chart.name)
+        else:
+            self.pie_show.button_style = 'solid'
+            self.grid_stack_handler.add_chart(self.pie_chart)
 
     def show_line_chart(self,event):
-        if self.line_show.clicks%2!=0:
-            self.line_show.button_style='outline'
-            value= False
-        else:
-            value = True
-            self.line_show.button_style='solid'
-
-        if value:
-            self.grid_stack_handler.add_chart(self.line_chart)
-        else:
+        if self.line_show.button_style == 'solid':
+            self.line_show.button_style = 'outline'
             self.grid_stack_handler.remove_chart(self.line_chart.name)
+        else:
+            self.line_show.button_style = 'solid'
+            self.grid_stack_handler.add_chart(self.line_chart)
 
     def show_radar_chart(self,event):
-        if self.radar_show.clicks%2!=0:
-            self.radar_show.button_style='outline'
-            value= False
-        else:
-            value = True
-            self.radar_show.button_style='solid'
-
-        if value:
-            self.grid_stack_handler.add_chart(self.radar_chart)
-        else:
+        if self.radar_show.button_style == 'solid':
+            self.radar_show.button_style = 'outline'
             self.grid_stack_handler.remove_chart(self.radar_chart.name)
+        else:
+            self.radar_show.button_style = 'solid'
+            self.grid_stack_handler.add_chart(self.radar_chart)
 
     def show_heatmap_chart(self,event):
-        if self.heatmap_show.clicks%2!=0:
-            self.heatmap_show.button_style='outline'
-            value= False
-        else:
-            value = True
-            self.heatmap_show.button_style='solid'
-
-        if value:
-            self.grid_stack_handler.add_chart(self.heatmap_chart)
-        else:
+        if self.heatmap_show.button_style == 'solid':
+            self.heatmap_show.button_style = 'outline'
             self.grid_stack_handler.remove_chart(self.heatmap_chart.name)
+        else:
+            self.heatmap_show.button_style = 'solid'
+            self.grid_stack_handler.add_chart(self.heatmap_chart)
 
     def show_sankey_chart(self,event):
-        if self.sankey_show.clicks%2!=0:
-            self.sankey_show.button_style='outline'
-            value= False
-        else:
-            value = True
-            self.sankey_show.button_style='solid'
-
-        if value:
-            self.grid_stack_handler.add_chart(self.sankey_chart)
-        else:
+        if self.sankey_show.button_style == 'solid':
+            self.sankey_show.button_style = 'outline'
             self.grid_stack_handler.remove_chart(self.sankey_chart.name)
+        else:
+            self.sankey_show.button_style = 'solid'
+            self.grid_stack_handler.add_chart(self.sankey_chart)
 
     def show_violin_chart(self,event):
-        if self.violin_show.clicks%2!=0:
-            self.violin_show.button_style='outline'
-            value= False
-        else:
-            value = True
-            self.violin_show.button_style='solid'
-
-        if value:
-            self.grid_stack_handler.add_chart(self.violin_chart)
-        else:
+        if self.violin_show.button_style == 'solid':
+            self.violin_show.button_style = 'outline'
             self.grid_stack_handler.remove_chart(self.violin_chart.name)
+        else:
+            self.violin_show.button_style = 'solid'
+            self.grid_stack_handler.add_chart(self.violin_chart)
 
     def freeze_handler(self,event):
-        if self.freeze_show.clicks%2!=0:
-            self.freeze_show.button_style='outline'
-            value= False
+        if self.freeze_show.button_style == 'solid':
+            self.freeze_show.button_style = 'outline'
+            self.grid_stack_handler.dynamic(True)
         else:
-            value = True
-            self.freeze_show.button_style='solid'
-
-        dynamic_flag = not value
-        self.grid_stack_handler.dynamic(dynamic_flag)
+            self.freeze_show.button_style = 'solid'
+            self.grid_stack_handler.dynamic(False)
 
 
     def add_new_text(self,event):
         self.text_manager.create_new_text_field()
+
+##########################################################################################
+    def _build_session_zip(self):
+        import io as _io
+        return _io.BytesIO(save_session(self))
+
+    def continue_session_handler(self, event):
+        self.session_file_input_page.visible = not self.session_file_input_page.visible
+
+    def session_file_input_handler(self, event):
+        zip_bytes = self.session_file_input_page.value
+        if not zip_bytes or not isinstance(zip_bytes, bytes):
+            return
+        try:
+            loaded = load_session(zip_bytes)
+        except Exception as e:
+            pn.state.notifications.error(f'<span style="font-family: sans-serif; font-size: 15px;">Could not load session: {e}</span>', duration=0)
+            return
+        self._restore_session(loaded)
+
+    def _restore_session(self, loaded):
+        self.loading.visible = True
+        state = loaded['state']
+        cfg = state['config']
+
+        self.dataset = loaded['dataset']
+        self.curent_filter_data = self.dataset
+        self.location_column = cfg['location_column']
+        if self.location_column and self.location_column in self.dataset.columns:
+            self.dataset[self.location_column] = self.dataset[self.location_column].astype('string')
+        self.time_column = cfg['time_column']
+        self.value_column = cfg['value_column']
+        self.chart_column = cfg['chart_column']
+        self.filter_columns_names = cfg['filter_columns_names']
+        self.geo_data_name = cfg['geo_data_name']
+        self.geo_feild_value = cfg['geo_field_value']
+        self.skip_map_flag = cfg['skip_map_flag']
+
+        if self.skip_map_flag:
+            self.map_settings_card.visible = False
+            self.map_show.visible = False
+            self.select_geo_field_tooltip.set_visible(False)
+            self.select_location_column_tooltip.set_visible(False)
+
+        if loaded['geojson']:
+            self.geo_handler.add_geojson(loaded['geojson'])
+        elif self.geo_data_name and not self.skip_map_flag:
+            self.geo_handler.get_single_geojson(self.geo_data_name)
+
+        if not self.skip_map_flag:
+            self.geo_data = self.geo_handler.get_single_geojson(
+                self.geo_data_name,
+                set(self.dataset[self.location_column]),
+                self.geo_feild_value.replace('feature.properties.', ''),
+            )
+            self.create_map()
+
+        self.create_filters_columns(self.filter_columns_names)
+        self.update_widgets_map_create()
+
+        vis_cfg = state['visualization']
+        map_cfg = state['map_settings']
+        sc_cfg = state['special_charts']
+        filt_cfg = state['filters']
+        chart_vis = state['chart_visibility']
+
+        if vis_cfg['value_column'] in self.select_value_column_update.options:
+            self.select_value_column_update.value = vis_cfg['value_column']
+        if vis_cfg['chart_x'] in self.select_chart_x_update.options:
+            self.select_chart_x_update.value = vis_cfg['chart_x']
+        if vis_cfg['legend'] in self.select_legend_update.options:
+            self.select_legend_update.value = vis_cfg['legend']
+        self.agg_buttons.value = vis_cfg['agg_type']
+
+        self.select_base_map.value = map_cfg['base_map']
+        self.select_color_map.value = map_cfg['color_map']
+        self.transparency_map_range.value = map_cfg['transparency']
+        valid_tooltip = [c for c in map_cfg['tooltip_columns'] if c in self.select_tooltip.options]
+        self.select_tooltip.value = valid_tooltip
+
+        valid_heatmap = [c for c in sc_cfg['heatmap_fields'] if c in self.select_heatmap_fields.options]
+        self.select_heatmap_fields.value = valid_heatmap
+        cols_none = self.select_sankey_source.options
+        if sc_cfg['sankey_source'] in cols_none:
+            self.select_sankey_source.value = sc_cfg['sankey_source']
+        if sc_cfg['sankey_target'] in cols_none:
+            self.select_sankey_target.value = sc_cfg['sankey_target']
+
+        if filt_cfg['year_range'] and self.time_column:
+            yr = filt_cfg['year_range']
+            self.year_range.value = (
+                max(self.year_range.start, yr[0]),
+                min(self.year_range.end, yr[1]),
+            )
+
+        for i, name in enumerate(self.filter_columns_names):
+            saved_vals = filt_cfg['filter_values'].get(name, [])
+            valid_vals = [v for v in saved_vals if v in self.filter_columns_widgets[i].options]
+            self.filter_columns_widgets[i].value = valid_vals
+
+        toggle_map = {
+            'map': self.map_show, 'bar': self.bar_show, 'line': self.line_show,
+            'box': self.box_show, 'violin': self.violin_show, 'scatter': self.scatter_show,
+            'pie': self.pie_show, 'radar': self.radar_show, 'heatmap': self.heatmap_show,
+            'sankey': self.sankey_show,
+        }
+        chart_panel_map = {
+            'bar': self.bar_chart, 'line': self.line_chart, 'box': self.box_chart,
+            'violin': self.violin_chart, 'scatter': self.scatter_chart, 'pie': self.pie_chart,
+            'radar': self.radar_chart, 'heatmap': self.heatmap_chart, 'sankey': self.sankey_chart,
+        }
+        for key, btn in toggle_map.items():
+            btn.button_style = 'solid' if chart_vis.get(key, False) else 'outline'
+
+        self.show_experiment_page(None)
+        self.map_update(None)
+
+        visible_charts = []
+        if chart_vis.get('map', True) and not self.skip_map_flag:
+            visible_charts.append(self.responsive_map)
+        for key in ['bar', 'line', 'box', 'violin', 'scatter', 'pie', 'radar', 'heatmap', 'sankey']:
+            if chart_vis.get(key, False):
+                visible_charts.append(chart_panel_map[key])
+
+        self.grid_stack_handler.rebuild_with_charts(visible_charts)
+
 ##########################################################################################
     def bend_components_actions(self):
         self.geojson_input.param.watch(self.geojson_input_handler,'value')
@@ -1207,8 +1289,10 @@ class map_dashboard:
         self.create_experiment_button.param.watch(self.show_experiment_page,'value')
         self.create_experiment_button_page.param.watch(self.show_experiment_page,'value')
         self.skip_map_button.param.watch(self.disable_map,'value')
-        self.create_example_button.param.watch(self.show_video_example,'value') 
-        self.create_example_button_page.param.watch(self.show_video_example,'value') 
+        self.create_example_button.param.watch(self.show_video_example,'value')
+        self.create_example_button_page.param.watch(self.show_video_example,'value')
+        self.continue_session_button_page.param.watch(self.continue_session_handler, 'value')
+        self.session_file_input_page.param.watch(self.session_file_input_handler, 'value')
 
         self.map_show.param.watch(self.show_map_chart,'value')
         self.line_show.param.watch(self.show_line_chart,'value') 

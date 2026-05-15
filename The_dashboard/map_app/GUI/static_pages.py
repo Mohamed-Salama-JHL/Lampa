@@ -14,8 +14,10 @@ class home_page:
         
         self.create_experiment_button_page = pn.widgets.Button(name='Get Started', button_type='primary', design=self.design)
         self.create_example_button_page = pn.widgets.Button(name='Demo', button_type='primary', design=self.design,button_style='outline')
-        home_page_buttons_bar = pn.Row(self.create_experiment_button_page,self.create_example_button_page,align='start')
-        first_part = pn.Row(pn.Column(info_text,info_text2,home_page_buttons_bar,margin=(20, 50)),logo_home, align='center',margin=(170, 10, 300, 10))
+        self.continue_session_button_page = pn.widgets.Button(name='Continue Session', button_type='primary', design=self.design, button_style='outline', icon='upload')
+        self.session_file_input_page = pn.widgets.FileInput(name='Upload Session File (.zip)', accept='.zip', visible=False, design=self.design)
+        home_page_buttons_bar = pn.Row(self.create_experiment_button_page,self.create_example_button_page,self.continue_session_button_page,align='start')
+        first_part = pn.Row(pn.Column(info_text,info_text2,home_page_buttons_bar,self.session_file_input_page,margin=(20, 50)),logo_home, align='center',margin=(170, 10, 300, 10))
         return first_part
 
     def create_second_part(self):
@@ -42,7 +44,7 @@ class home_page:
         return self.page
     
     def get_buttons(self):
-        return self.create_experiment_button_page, self.create_example_button_page
+        return self.create_experiment_button_page, self.create_example_button_page, self.continue_session_button_page, self.session_file_input_page
 class about_page:
     def __init__(self) -> None:
         self.page = self.create_page()
